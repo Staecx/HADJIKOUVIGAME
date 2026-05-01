@@ -1,0 +1,2176 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Hadjikouvi Game</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;600;700;800&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;background:#000;color:#fff;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;overflow:hidden;user-select:none}
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .4s,transform .4s;transform:translateY(16px);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.screen.active{opacity:1;pointer-events:auto;transform:translateY(0)}
+.orb{position:fixed;border-radius:50%;pointer-events:none;z-index:0}
+.o1{width:350px;height:350px;background:rgba(0,122,255,.12);top:-80px;right:-80px;filter:blur(70px)}
+.o2{width:250px;height:250px;background:rgba(88,86,214,.10);bottom:-50px;left:-60px;filter:blur(60px)}
+.o3{width:180px;height:180px;background:rgba(255,45,85,.07);top:45%;left:25%;filter:blur(55px)}
+/* TOPBAR */
+.topbar{position:fixed;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:rgba(0,0,0,.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.08);z-index:50}
+.spill{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.10);border-radius:50px;padding:5px 12px;transition:border-color .3s}
+.savp{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0}
+.savimg{width:24px;height:24px;border-radius:50%;object-fit:cover;flex-shrink:0}
+.sname{font-size:12px;font-weight:600;color:rgba(255,255,255,.85);max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.spts{font-size:15px;font-weight:800;color:#FFD60A}
+.mbadge{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.10);border-radius:50px;padding:5px 14px;font-size:11px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.5)}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:50px;border:none;font-family:inherit;font-weight:700;font-size:15px;cursor:pointer;transition:all .2s}
+.btn:active{transform:scale(.96)}
+.btn-p{background:linear-gradient(135deg,#007AFF,#5856D6);color:#fff;box-shadow:0 8px 28px rgba(0,122,255,.3)}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 12px 36px rgba(0,122,255,.45)}
+.btn-s{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.12)}
+.btn-s:hover{background:rgba(255,255,255,.14)}
+.btn-g{background:linear-gradient(135deg,#34C759,#30D158);color:#fff;box-shadow:0 6px 20px rgba(52,199,89,.25)}
+.btn-gold{background:linear-gradient(135deg,#FFD60A,#FF9F0A);color:#000}
+.btn-r{background:linear-gradient(135deg,#FF3B30,#FF2D55);color:#fff}
+.btn-sm{padding:10px 18px;font-size:13px}
+.btn-xs{padding:8px 14px;font-size:12px;border-radius:50px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:rgba(255,255,255,.45);font-family:inherit;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-xs:hover{background:rgba(255,255,255,.12);color:rgba(255,255,255,.8)}
+.btn-xs:disabled{opacity:.2;cursor:not-allowed}
+.w100{width:100%}
+/* INPUT */
+.inp{width:100%;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);border-radius:14px;padding:13px 16px;color:#fff;font-family:inherit;font-size:15px;outline:none;transition:border-color .2s}
+.inp:focus{border-color:rgba(0,122,255,.6)}
+.inp::placeholder{color:rgba(255,255,255,.25)}
+.txtarea{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px;color:#fff;font-family:inherit;font-size:13px;resize:none;outline:none;height:76px;line-height:1.5}
+.txtarea:focus{border-color:rgba(255,255,255,.3)}
+/* CARDS */
+.card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:16px}
+.ghpill{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:50px;padding:8px 16px;align-self:flex-start}
+.ghpill h2{font-size:14px;font-weight:800}
+.gtag{margin-left:4px;font-size:9px;font-weight:700;letter-spacing:2px;padding:3px 9px;border-radius:50px}
+.tvs{background:rgba(255,45,85,.15);color:#FF2D55}
+.tcoop{background:rgba(52,199,89,.15);color:#34C759}
+/* TIMER */
+.timerrow{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:10px 14px}
+.tsvg{transform:rotate(-90deg);flex-shrink:0}
+.tcbg{fill:none;stroke:rgba(255,255,255,.08);stroke-width:5}
+.tcarc{fill:none;stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset 1s linear,stroke .5s}
+.ttime{font-size:22px;font-weight:800;line-height:1;transition:color .3s}
+.tlbl{font-size:10px;color:rgba(255,255,255,.35);margin-top:2px;letter-spacing:1px}
+/* BUZZ */
+.bgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bcard{border-radius:18px;border:2px solid;padding:20px 12px;text-align:center;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:8px}
+.bcard:active{transform:scale(.95)}
+.bc1{background:rgba(0,122,255,.08);border-color:rgba(0,122,255,.3)}
+.bc1:hover{background:rgba(0,122,255,.16)}
+.bc2{background:rgba(255,45,85,.08);border-color:rgba(255,45,85,.3)}
+.bc2:hover{background:rgba(255,45,85,.16)}
+.bcard.win{animation:bw .4s cubic-bezier(.34,1.56,.64,1)}
+.bcard.off{pointer-events:none;opacity:.4}
+@keyframes bw{0%{transform:scale(1)}50%{transform:scale(1.07)}100%{transform:scale(1)}}
+.bavp{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800}
+.bavimg{width:52px;height:52px;border-radius:50%;object-fit:cover}
+.bname{font-weight:700;font-size:13px}
+.blbl{font-size:9px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.3)}
+/* REVEAL */
+.revbox{background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.25);border-radius:14px;padding:13px;text-align:center;display:none}
+.revbox.show{display:block;animation:fi .3s ease}
+.revanswer{font-size:18px;font-weight:800;color:#34C759;margin-bottom:2px}
+.revsub{font-size:11px;color:rgba(255,255,255,.35)}
+/* OPTIONS */
+.ogrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.opt{padding:13px 12px;border-radius:13px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.10);color:#fff;font-family:inherit;font-weight:600;font-size:13px;cursor:pointer;transition:all .2s;text-align:left;display:flex;align-items:center;gap:10px;line-height:1.4}
+.opt:hover{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.2)}
+.opt:active{transform:scale(.97)}
+.opt.correct{background:rgba(52,199,89,.12);border-color:#34C759;color:#34C759;pointer-events:none}
+.opt.wrong{background:rgba(255,59,48,.10);border-color:#FF3B30;color:#FF3B30;pointer-events:none}
+.opt.disabled{pointer-events:none;opacity:.35}
+.optl{width:26px;height:26px;border-radius:7px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0}
+/* PTROW */
+.ptrow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+/* FEEDBACK */
+.fbbox{border-radius:14px;padding:13px 15px;font-size:13px;line-height:1.6;display:none}
+.fbbox.show{display:block;animation:fi .3s ease}
+.fbok{background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.25);color:rgba(255,255,255,.8)}
+.fbko{background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.2);color:rgba(255,255,255,.75)}
+.fbto{background:rgba(255,159,10,.08);border:1px solid rgba(255,159,10,.2);color:rgba(255,255,255,.75)}
+/* NEXT */
+.nxtbtn{width:100%;padding:13px;border-radius:50px;border:none;background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;transition:all .2s;display:none}
+.nxtbtn:hover{background:rgba(255,255,255,.14);color:#fff}
+.nxtbtn.show{display:block}
+.endbtn{width:100%;padding:12px;border-radius:50px;border:1px solid rgba(255,255,255,.08);background:transparent;color:rgba(255,255,255,.3);font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;transition:all .2s}
+.endbtn:hover{color:rgba(255,255,255,.6)}
+/* BITLIFE */
+.blscene{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:16px}
+.bllbl{font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.35);margin-bottom:7px;text-transform:uppercase}
+.bltxt{font-size:14px;font-weight:500;line-height:1.75;color:rgba(255,255,255,.85)}
+.bltxt strong{color:#fff;font-weight:700}
+.blchoices{display:flex;flex-direction:column;gap:7px}
+.blch{padding:13px 14px;border-radius:13px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.10);color:#fff;font-family:inherit;font-weight:600;font-size:13px;cursor:pointer;text-align:left;transition:all .2s;display:flex;align-items:center;gap:11px}
+.blch:hover{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.2);transform:translateX(4px)}
+.blch:active{transform:scale(.98)}
+.blch.cg{background:rgba(52,199,89,.12);border-color:#34C759;pointer-events:none}
+.blch.cb{background:rgba(255,59,48,.10);border-color:#FF3B30;pointer-events:none}
+.blch.cdis{pointer-events:none;opacity:.35}
+.blcl{width:26px;height:26px;border-radius:7px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0}
+.blout{background:rgba(0,122,255,.08);border:1px solid rgba(0,122,255,.2);border-radius:13px;padding:12px 14px;font-size:13px;color:rgba(255,255,255,.75);line-height:1.6;display:none}
+.blout.show{display:block;animation:fi .3s ease}
+.hpbar{flex:1;height:7px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden}
+.hpfill{height:100%;border-radius:4px;transition:width .8s,background .5s}
+/* QBOX */
+.qbox{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:18px;text-align:center}
+.qbadge{display:inline-block;padding:4px 11px;border-radius:50px;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.qtxt{font-size:17px;font-weight:700;line-height:1.5;margin-bottom:5px}
+.qhint{font-size:12px;color:rgba(255,255,255,.35)}
+.lyric{font-size:15px;font-weight:700;line-height:2.2;text-align:center}
+.lbl{display:inline-block;background:rgba(0,122,255,.15);border-bottom:2px solid #007AFF;min-width:80px;padding:0 8px;color:#007AFF;border-radius:4px}
+/* VOD */
+.vodcard{border-radius:18px;padding:24px 18px;text-align:center;min-height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+.vver{background:rgba(0,122,255,.08);border:1.5px solid rgba(0,122,255,.25)}
+.vdef{background:rgba(255,45,85,.08);border:1.5px solid rgba(255,45,85,.25)}
+.vodtype{font-size:10px;font-weight:700;letter-spacing:3px}
+.vver .vodtype{color:#007AFF}
+.vdef .vodtype{color:#FF2D55}
+.vodtxt{font-size:17px;font-weight:700;line-height:1.5}
+/* DLM */
+.dlmw{font-size:42px;font-weight:800;text-align:center;padding:22px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:18px;color:#34C759;transition:filter .3s}
+.dlmblur{filter:blur(14px);color:rgba(52,199,89,.3);user-select:none}
+/* BAC */
+.bacletter{font-size:56px;font-weight:800;text-align:center;color:#FFD60A;line-height:1;font-family:Syne,sans-serif}
+.bacfields{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.bacfw label{font-size:9px;font-weight:700;letter-spacing:1.5px;color:rgba(255,255,255,.35);display:block;margin-bottom:3px}
+.bacfw input{width:100%;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);border-radius:9px;padding:9px 12px;color:#fff;font-family:inherit;font-size:13px;outline:none;transition:border-color .2s}
+.bacfw input:focus{border-color:rgba(255,214,10,.5)}
+/* OSC/TMK */
+.osc2col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.oscbox{background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.09);border-radius:14px;padding:11px}
+.osclbl{font-size:9px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.35);margin-bottom:7px}
+/* HOME */
+.cdot{width:20px;height:20px;border-radius:50%;cursor:pointer;transition:transform .15s;border:2px solid transparent}
+.cdot:hover{transform:scale(1.2)}
+.cdot.sel{border-color:#fff;transform:scale(1.15)}
+/* ANIMATIONS */
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+@keyframes su{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes cdpop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes trophyB{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-10px) rotate(5deg)}}
+@keyframes bw{0%{transform:scale(1)}50%{transform:scale(1.07)}100%{transform:scale(1)}}
+.fade-in{animation:fi .3s ease}
+.slide-up{animation:su .4s cubic-bezier(.4,0,.2,1)}
+::-webkit-scrollbar{width:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  window._FB = { initializeApp, getDatabase, ref, set, onValue };
+</script>
+</head>
+<body>
+<div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div>
+
+<!-- HOME -->
+<div class="screen active" id="s-home" style="padding:40px 20px;justify-content:flex-start;padding-top:50px">
+  <div style="text-align:center;margin-bottom:24px;position:relative;z-index:1">
+    <h1 style="font-family:Syne,sans-serif;font-weight:800;font-size:clamp(28px,8vw,42px);background:linear-gradient(135deg,#fff 30%,rgba(255,255,255,.55));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.05">HADJIKOUVI<br>GAME</h1>
+    <div style="font-size:11px;color:rgba(255,255,255,.3);letter-spacing:3px;text-transform:uppercase;margin-top:7px;font-weight:500">La soirée qui change tout</div>
+    <button onclick="showQR()" style="margin-top:10px;padding:7px 16px;border-radius:50px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:rgba(255,255,255,.6);font-family:inherit;font-weight:600;font-size:12px;cursor:pointer">📱 Rejoindre depuis un autre appareil</button>
+  </div>
+  <div style="display:flex;gap:12px;width:100%;max-width:500px;margin-bottom:14px;position:relative;z-index:1">
+    <div style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);border-radius:20px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:10px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.35);align-self:flex-start">JOUEUR 1</div>
+      <label style="width:64px;height:64px;border-radius:50%;border:2px dashed rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:rgba(255,255,255,.04)">
+        <img id="av1img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%">
+        <span id="av1ico" style="font-size:22px;color:rgba(255,255,255,.25)">📷</span>
+        <input type="file" accept="image/*" onchange="loadAv(1,this)" style="position:absolute;width:1px;height:1px;opacity:0">
+      </label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center" id="cd1">
+        <div class="cdot sel" style="background:#007AFF" onclick="selC(1,'#007AFF',this)"></div>
+        <div class="cdot" style="background:#5856D6" onclick="selC(1,'#5856D6',this)"></div>
+        <div class="cdot" style="background:#34C759" onclick="selC(1,'#34C759',this)"></div>
+        <div class="cdot" style="background:#FF9F0A" onclick="selC(1,'#FF9F0A',this)"></div>
+        <div class="cdot" style="background:#FF2D55" onclick="selC(1,'#FF2D55',this)"></div>
+      </div>
+      <input class="inp" id="n1" placeholder="Ton prénom" maxlength="12">
+    </div>
+    <div style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);border-radius:20px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:10px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.35);align-self:flex-start">JOUEUR 2</div>
+      <label style="width:64px;height:64px;border-radius:50%;border:2px dashed rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:rgba(255,255,255,.04)">
+        <img id="av2img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%">
+        <span id="av2ico" style="font-size:22px;color:rgba(255,255,255,.25)">📷</span>
+        <input type="file" accept="image/*" onchange="loadAv(2,this)" style="position:absolute;width:1px;height:1px;opacity:0">
+      </label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center" id="cd2">
+        <div class="cdot" style="background:#007AFF" onclick="selC(2,'#007AFF',this)"></div>
+        <div class="cdot sel" style="background:#FF2D55" onclick="selC(2,'#FF2D55',this)"></div>
+        <div class="cdot" style="background:#FF9F0A" onclick="selC(2,'#FF9F0A',this)"></div>
+        <div class="cdot" style="background:#5AC8FA" onclick="selC(2,'#5AC8FA',this)"></div>
+        <div class="cdot" style="background:#30D158" onclick="selC(2,'#30D158',this)"></div>
+      </div>
+      <input class="inp" id="n2" placeholder="Son prénom" maxlength="12">
+    </div>
+  </div>
+  <div style="width:100%;max-width:500px;position:relative;z-index:1">
+    <button class="btn btn-p w100" onclick="startGame()" style="font-size:16px;padding:17px">Lancer la soirée 🚀</button>
+  </div>
+</div>
+
+
+<!-- READY -->
+<div class="screen" id="s-ready" style="background:#000;padding:20px;gap:20px">
+  <div style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;text-align:center" id="ready-game-name"></div>
+  <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:20px;width:100%;max-width:480px">
+    <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.4);margin-bottom:10px;text-align:center">📋 COMMENT ÇA MARCHE</div>
+    <div id="ready-rules" style="font-size:14px;color:rgba(255,255,255,.75);line-height:1.8"></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:480px">
+    <button id="ready-p1-btn" onclick="playerReady(1)" style="padding:20px;border-radius:18px;border:2px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-weight:700;font-size:15px;cursor:pointer;transition:all .2s" id="rp1">
+      <div id="rp1-av" style="margin-bottom:6px;font-size:28px"></div>
+      <div id="rp1-name"></div>
+      <div style="font-size:11px;margin-top:4px;opacity:.5">Appuie pour confirmer</div>
+    </button>
+    <button id="ready-p2-btn" onclick="playerReady(2)" style="padding:20px;border-radius:18px;border:2px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-weight:700;font-size:15px;cursor:pointer;transition:all .2s">
+      <div id="rp2-av" style="margin-bottom:6px;font-size:28px"></div>
+      <div id="rp2-name"></div>
+      <div style="font-size:11px;margin-top:4px;opacity:.5">Appuie pour confirmer</div>
+    </button>
+  </div>
+  <div id="ready-status" style="font-size:13px;color:rgba(255,255,255,.4);text-align:center">En attente des deux joueurs...</div>
+</div>
+
+<!-- COUNTDOWN -->
+<div class="screen" id="s-cd" style="background:#000;z-index:100">
+  <div id="cdnum" style="font-family:Syne,sans-serif;font-weight:800;font-size:22vw;line-height:1;background:linear-gradient(135deg,#007AFF,#5856D6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">3</div>
+  <div id="cdgn" style="font-size:16px;color:rgba(255,255,255,.4);margin-top:12px;font-weight:600"></div>
+</div>
+
+<!-- WHEEL -->
+<div class="screen" id="s-wheel" style="background:#000;padding:20px;gap:14px">
+  <div class="topbar">
+    <div class="spill" id="w-tb1"></div>
+    <div class="mbadge" id="w-tbm">MANCHE 1</div>
+    <div class="spill" id="w-tb2"></div>
+  </div>
+  <div style="height:56px"></div>
+  <div style="font-family:Syne,sans-serif;font-size:22px;font-weight:800;text-align:center;position:relative;z-index:1">Tourne la roue !</div>
+  <div style="font-size:12px;color:rgba(255,255,255,.35);position:relative;z-index:1">Pour découvrir le prochain jeu</div>
+  <div style="position:relative;width:280px;height:280px;flex-shrink:0;z-index:1">
+    <div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:11px solid transparent;border-right:11px solid transparent;border-top:24px solid #FFD60A;z-index:10;filter:drop-shadow(0 0 8px rgba(255,214,10,.8))"></div>
+    <canvas id="wc" width="280" height="280"></canvas>
+  </div>
+  <div id="wres" style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;text-align:center;min-height:26px;color:#FFD60A;position:relative;z-index:1"></div>
+  <div id="wgprev" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:12px 16px;width:100%;max-width:380px;display:none;align-items:center;gap:10px;position:relative;z-index:1">
+    <div id="wgpemoji" style="font-size:26px"></div>
+    <div><div id="wgpname" style="font-size:14px;font-weight:700"></div><div id="wgptag" style="font-size:10px;font-weight:700;letter-spacing:2px;margin-top:2px"></div></div>
+  </div>
+  <button class="btn btn-p" id="wspin" onclick="spinWheel()" style="position:relative;z-index:1">Tourner 🎡</button>
+  <button class="btn btn-g" id="wnxt" style="display:none;position:relative;z-index:2;font-size:18px;padding:18px 40px" onclick="launchGame()">Jouer →</button>
+</div>
+
+<!-- GAME -->
+<div class="screen" id="s-game" style="background:#0a0a0f;padding:72px 20px 20px;justify-content:flex-start;align-items:stretch;overflow-y:auto">
+  <div class="topbar">
+    <div class="spill" id="g-tb1"></div>
+    <div class="mbadge" id="g-tbm">MANCHE 1</div>
+    <div class="spill" id="g-tb2"></div>
+  </div>
+  <div id="ginner" style="flex:1;display:flex;flex-direction:column;gap:10px;max-width:640px;margin:0 auto;width:100%"></div>
+</div>
+
+<!-- RECAP -->
+<div class="screen" id="s-recap" style="background:#000;padding:2rem;gap:14px;overflow-y:auto">
+  <div class="topbar">
+    <div class="spill" id="rec-tb1"></div>
+    <div class="mbadge" id="rec-tbm">MANCHE 1</div>
+    <div class="spill" id="rec-tb2"></div>
+  </div>
+  <div style="height:56px"></div>
+  <div id="rec-title" style="font-family:Syne,sans-serif;font-size:26px;font-weight:800;text-align:center"></div>
+  <div style="display:flex;gap:10px;width:100%;max-width:400px" id="rec-scores"></div>
+  <div id="rec-eq" style="display:none;font-size:14px;font-weight:700;color:#FFD60A;text-align:center">🤝 Égalité parfaite — pas de gage !</div>
+  <div id="rec-gage" style="display:none;width:100%;max-width:400px;background:rgba(255,45,85,.07);border:1px solid rgba(255,45,85,.2);border-radius:18px;padding:18px">
+    <div id="rec-gage-who" style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,45,85,.8);margin-bottom:6px"></div>
+    <div id="rec-gage-txt" style="font-size:15px;font-weight:700;line-height:1.5"></div>
+    <button onclick="newGage()" style="margin-top:10px;padding:7px 16px;border-radius:50px;border:1px solid rgba(255,45,85,.25);background:rgba(255,45,85,.08);color:rgba(255,45,85,.7);font-family:inherit;font-weight:700;font-size:11px;cursor:pointer">🔄 Autre gage</button>
+  </div>
+  <div style="display:flex;gap:8px;width:100%;max-width:400px" id="rec-dots"></div>
+  <button class="btn w100" id="rec-nxt" style="max-width:400px">Manche suivante →</button>
+</div>
+
+<!-- FIN -->
+<div class="screen" id="s-fin" style="background:#000;padding:2rem;gap:14px;overflow-y:auto">
+  <canvas id="confcv" style="position:fixed;inset:0;pointer-events:none;z-index:0"></canvas>
+  <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;max-width:480px;padding-top:20px">
+    <div style="font-size:58px;text-align:center;animation:trophyB 1.5s ease-in-out infinite">🏆</div>
+    <div id="fin-winner" style="font-family:Syne,sans-serif;font-size:28px;font-weight:800;text-align:center;background:linear-gradient(135deg,#FFD60A,#FF9F0A);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text"></div>
+    <div id="fin-sub" style="font-size:13px;color:rgba(255,255,255,.4);text-align:center"></div>
+    <div style="display:flex;gap:10px;width:100%" id="fin-scores"></div>
+    <div id="fin-prize" style="width:100%;background:rgba(255,214,10,.06);border:1px solid rgba(255,214,10,.2);border-radius:18px;padding:18px;text-align:center;display:none">
+      <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,214,10,.7);margin-bottom:6px">🎁 LE PRIZE</div>
+      <div id="fin-prize-txt" style="font-size:14px;font-weight:700"></div>
+    </div>
+    <div id="fin-gage" style="width:100%;background:rgba(255,45,85,.07);border:1px solid rgba(255,45,85,.2);border-radius:18px;padding:18px;display:none">
+      <div id="fin-gage-who" style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,45,85,.8);margin-bottom:6px"></div>
+      <div id="fin-gage-txt" style="font-size:14px;font-weight:700;line-height:1.5"></div>
+      <button onclick="newGageFin()" style="margin-top:10px;padding:7px 16px;border-radius:50px;border:1px solid rgba(255,45,85,.25);background:rgba(255,45,85,.08);color:rgba(255,45,85,.7);font-family:inherit;font-weight:700;font-size:11px;cursor:pointer">🔄 Autre gage</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%" id="fin-stats"></div>
+    <div style="display:flex;gap:8px;width:100%">
+      <button class="btn btn-p" style="flex:1" onclick="restartGame()">Rejouer 🔄</button>
+      <button class="btn btn-s btn-sm" onclick="shareScore()">Partager 📤</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- PHONE SCREEN -->
+<div class="screen" id="s-phone" style="background:#000;padding:20px;overflow-y:auto">
+  <div style="position:fixed;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.8);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.08);z-index:50">
+    <div style="font-family:Syne,sans-serif;font-size:14px;font-weight:800;letter-spacing:2px">HADJIKOUVI GAME 📱</div>
+  </div>
+  <div style="height:70px"></div>
+  <div id="phone-content" style="width:100%;max-width:420px;margin:0 auto"></div>
+</div>
+
+<!-- QR CODE MODAL -->
+<div id="qr-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#111;border:1px solid rgba(255,255,255,.12);border-radius:24px;padding:28px;max-width:340px;width:100%;text-align:center">
+    <div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;margin-bottom:6px">📱 Rejoindre depuis un autre appareil</div>
+    <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:16px">Scannez ce QR code pour ouvrir le jeu sur votre téléphone</div>
+    <div id="qr-container" style="background:#fff;border-radius:12px;padding:12px;display:inline-block;margin-bottom:16px"></div>
+    <div id="qr-url" style="font-size:10px;color:rgba(255,255,255,.3);word-break:break-all;margin-bottom:10px;padding:8px;background:rgba(255,255,255,.05);border-radius:8px"></div>
+    <div id="qr-note" style="display:none;font-size:12px;color:#FF9F0A;background:rgba(255,159,10,.1);border:1px solid rgba(255,159,10,.25);border-radius:10px;padding:10px;margin-bottom:12px;text-align:left;line-height:1.6">⚠️ <strong>Fichier local</strong> — Le QR code fonctionne uniquement si le jeu est hébergé en ligne (GitHub Pages, Netlify…). En attendant, jouez à 2 sur le même appareil !</div>
+    <button onclick="closeQR()" style="width:100%;padding:13px;border-radius:50px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#fff;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer">Fermer</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ══════════════════════════════════════════════════════════════
+// FIREBASE SYNC ENGINE — Hadjikouvi Game
+// ══════════════════════════════════════════════════════════════
+var FB_URL = "https://hadjikouvi-default-rtdb.firebaseio.com";
+var _db = null;
+var _sessionId = null;
+var _isHost = false;
+var _playerNum = 0;
+var _fbReady = false;
+var _lastActionTs = {};
+
+function fbInit() {
+  if (!window._FB) { setTimeout(fbInit, 300); return; }
+  try {
+    var app = window._FB.initializeApp({ databaseURL: FB_URL, projectId: "hadjikouvi" });
+    _db = window._FB.getDatabase(app);
+    _fbReady = true;
+  } catch(e) { console.warn("Firebase init error:", e); }
+}
+
+function fbPush(data) {
+  if (!_db || !_isHost || !_sessionId || !_fbReady) return;
+  try { window._FB.set(window._FB.ref(_db, 'sessions/' + _sessionId + '/state'), data); } catch(e) {}
+}
+
+function fbPlayerAction(action) {
+  if (!_db || !_sessionId || !_fbReady) return;
+  try { window._FB.set(window._FB.ref(_db, 'sessions/' + _sessionId + '/actions/' + _playerNum), { action: action, ts: Date.now() }); } catch(e) {}
+}
+
+function fbListenActions() {
+  if (!_db || !_sessionId) return;
+  [1,2].forEach(function(p) {
+    window._FB.onValue(window._FB.ref(_db, 'sessions/' + _sessionId + '/actions/' + p), function(snap) {
+      var data = snap.val();
+      if (!data) return;
+      handlePhoneAction(p, data.action, data.ts);
+    });
+  });
+}
+
+function fbListen() {
+  if (!_db || !_sessionId) return;
+  window._FB.onValue(window._FB.ref(_db, 'sessions/' + _sessionId + '/state'), function(snap) {
+    var state = snap.val();
+    if (!state) return;
+    // Only render game state if player has confirmed their identity
+    if (_playerNum > 0) {
+      renderPhoneScreen(state);
+    }
+    // else: still on join screen, ignore state updates
+  });
+}
+
+function handlePhoneAction(playerNum, action, ts) {
+  if (_lastActionTs[playerNum] === ts) return;
+  _lastActionTs[playerNum] = ts;
+  if (!_isHost) return;
+  var parts = action.split(':');
+  var type = parts[0];
+  var val = parts.slice(1).join(':');
+  if (type === 'setname') { S['p'+playerNum].name = val; updTB(); }
+  else if (type === 'buzz') doBuzz(parseInt(val));
+  else if (type === 'surv_pick') survPick(parseInt(val));
+  else if (type === 'log_pick') logPick(parseInt(val));
+  else if (type === 'ready') playerReady(playerNum);
+  else if (type === 'spin') { if (!wSpin && !wCurGame && document.getElementById('s-wheel') && document.getElementById('s-wheel').classList.contains('active')) spinWheel(); }
+  else if (type === 'launch') { if (wCurGame) launchGame(); }
+  else if (type === 'esc_answer') checkEsc(val);
+  else if (type === 'bac_send') { receiveBacPhone(playerNum, val); }
+  else if (type === 'osc_send') { receiveOscPhone(playerNum, val); }
+  else if (type === 'vod_realise') { if (typeof vodRealise === 'function') vodRealise(); }
+  else if (type === 'vod_refuse') { if (typeof vodRefuse === 'function') vodRefuse(); }
+  else if (type === 'tc_score') { if (typeof _valTC === 'function') _valTC(parseInt(val)); }
+  else if (type === 'tc_start') { if (typeof tcStartPlayer === 'function') tcStartPlayer(parseInt(val)); }
+}
+
+function getSessionId() {
+  try { return new URLSearchParams(window.location.search).get('session'); } catch(e) { return null; }
+}
+
+function createSession() {
+  if (_sessionId) return _sessionId;
+  _sessionId = Math.random().toString(36).substr(2, 8).toUpperCase();
+  _isHost = true;
+  _playerNum = 0;
+  try { window.history.replaceState({}, '', window.location.pathname + '?session=' + _sessionId); } catch(e) {}
+  setTimeout(fbListenActions, 500);
+  return _sessionId;
+}
+
+function joinSession(sid) {
+  _sessionId = sid;
+  _isHost = false;
+  // Wait for Firebase to be ready before listening
+  var tries = 0;
+  function tryJoin() {
+    tries++;
+    if (_fbReady && _db) {
+      showPhoneJoinScreen();
+      fbListen();
+    } else if (tries < 30) {
+      setTimeout(tryJoin, 300);
+    } else {
+      showPhoneJoinScreen(); // show UI anyway, sync will catch up
+    }
+  }
+  setTimeout(tryJoin, 200);
+}
+
+// ── PHONE SCREEN RENDERING ────────────────────────────────────
+function showPhoneJoinScreen() {
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  var ph = document.getElementById('s-phone');
+  if (ph) ph.classList.add('active');
+  renderPhoneWelcome();
+}
+
+function renderPhoneWelcome() {
+  var el = document.getElementById('phone-content');
+  if (!el) return;
+  el.innerHTML =
+    '<div style="text-align:center;padding:20px 16px">' +
+    '<div style="font-size:64px;margin-bottom:16px">🎮</div>' +
+    '<div style="font-size:26px;font-weight:800;font-family:Syne,sans-serif;margin-bottom:6px">Hadjikouvi Game</div>' +
+    '<div style="font-size:13px;color:rgba(255,255,255,.4);margin-bottom:28px">Entre ton prénom pour rejoindre !</div>' +
+
+    '<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:20px;margin-bottom:16px">' +
+    '<div style="font-size:11px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.35);margin-bottom:12px">TON PRÉNOM</div>' +
+    '<input id="ph-name-inp" class="inp" placeholder="Écris ton prénom..." maxlength="12" style="font-size:18px;text-align:center;margin-bottom:16px" autocomplete="off" autocorrect="off" spellcheck="false">' +
+    '<div style="font-size:11px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.35);margin-bottom:10px">TU ES...</div>' +
+    '<div style="display:flex;gap:10px">' +
+    '<button id="ph-p1-btn" onclick="window._selectPlayer(1)" style="flex:1;padding:14px;border-radius:16px;border:2px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;transition:all .2s">👤 Joueur 1</button>' +
+    '<button id="ph-p2-btn" onclick="window._selectPlayer(2)" style="flex:1;padding:14px;border-radius:16px;border:2px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;transition:all .2s">👤 Joueur 2</button>' +
+    '</div>' +
+    '</div>' +
+
+    '<button onclick="window._confirmPhone()" style="width:100%;padding:18px;border-radius:50px;background:linear-gradient(135deg,#34C759,#30D158);color:#fff;border:none;font-size:17px;font-weight:700;cursor:pointer">Rejoindre la partie ✓</button>' +
+    '</div>';
+
+  var selectedPlayer = 0;
+  window._selectPlayer = function(num) {
+    selectedPlayer = num;
+    var b1 = document.getElementById('ph-p1-btn');
+    var b2 = document.getElementById('ph-p2-btn');
+    if (b1) { b1.style.borderColor = num===1 ? '#007AFF' : 'rgba(255,255,255,.15)'; b1.style.background = num===1 ? 'rgba(0,122,255,.2)' : 'rgba(255,255,255,.05)'; }
+    if (b2) { b2.style.borderColor = num===2 ? '#FF2D55' : 'rgba(255,255,255,.15)'; b2.style.background = num===2 ? 'rgba(255,45,85,.2)' : 'rgba(255,255,255,.05)'; }
+  };
+
+  window._confirmPhone = function() {
+    var nameEl = document.getElementById('ph-name-inp');
+    var name = nameEl ? nameEl.value.trim() : '';
+    if (!name) { if(nameEl){ nameEl.style.borderColor='#FF3B30'; nameEl.focus(); } return; }
+    if (!selectedPlayer) {
+      // auto-pick if not selected
+      selectedPlayer = 1;
+      window._selectPlayer(1);
+      setTimeout(window._confirmPhone, 200);
+      return;
+    }
+    _playerNum = selectedPlayer;
+    _phoneName = name;
+    // Send name to host via Firebase
+    fbPlayerAction('setname:' + name);
+    // Show connected screen
+    var el2 = document.getElementById('phone-content');
+    if (el2) el2.innerHTML =
+      '<div style="text-align:center;padding:40px 20px">' +
+      '<div style="font-size:64px;margin-bottom:16px">✅</div>' +
+      '<div style="font-size:22px;font-weight:800">' + name + '</div>' +
+      '<div style="font-size:14px;color:rgba(255,255,255,.5);margin-top:6px">Joueur ' + selectedPlayer + '</div>' +
+      '<div style="font-size:13px;color:rgba(255,255,255,.35);margin-top:16px">En attente du lancement de la partie...</div>' +
+      '<div style="margin-top:24px;width:40px;height:40px;border:3px solid rgba(255,255,255,.15);border-top-color:#007AFF;border-radius:50%;animation:spin 1s linear infinite;margin:24px auto 0"></div>' +
+      '</div>';
+  };
+}
+
+var _phoneName = '';
+
+function renderPhoneScreen(state) {
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  var ph = document.getElementById('s-phone');
+  if (ph) ph.classList.add('active');
+  var el = document.getElementById('phone-content');
+  if (!el) return;
+  var scr = state.screen || '';
+  if (scr === 'wheel') el.innerHTML = renderPhoneWheel(state);
+  else if (scr === 'ready') el.innerHTML = renderPhoneReady(state);
+  else if (scr === 'game') el.innerHTML = renderPhoneGame(state);
+  else if (scr === 'recap' || scr === 'fin') el.innerHTML = renderPhoneRecap(state);
+  else el.innerHTML = '<div style="text-align:center;padding:40px"><div style="font-size:14px;color:rgba(255,255,255,.4)">En attente...</div></div>';
+}
+
+function renderPhoneWheel(state) {
+  var d = state.data || {};
+  // Update score display with player names from host
+  if (d.p1name) { var sc = state.scores||{}; sc.p1=d.p1name; }
+  if (d.p2name) { var sc2 = state.scores||{}; sc2.p2=d.p2name; }
+  if (d.result) {
+    return '<div style="text-align:center;padding:30px">' +
+      '<div style="font-size:60px;margin-bottom:12px">' + (d.resultEmoji||'🎮') + '</div>' +
+      '<div style="font-size:22px;font-weight:800;color:#FFD60A;margin-bottom:24px">' + (d.result||'') + '</div>' +
+      '<button onclick="fbPlayerAction(\'launch\')" style="width:100%;padding:18px;border-radius:50px;background:linear-gradient(135deg,#34C759,#30D158);color:#fff;border:none;font-size:18px;font-weight:700;cursor:pointer">Jouer →</button>' +
+      '</div>';
+  }
+  if (d.spinning) return '<div style="text-align:center;padding:40px"><div style="font-size:50px;margin-bottom:16px">🎡</div><div style="font-size:16px;color:rgba(255,255,255,.5)">La roue tourne...</div></div>';
+  return '<div style="text-align:center;padding:30px">' +
+    '<div style="font-size:50px;margin-bottom:20px">🎡</div>' +
+    '<button onclick="fbPlayerAction(\'spin\')" style="width:100%;padding:20px;border-radius:50px;background:linear-gradient(135deg,#007AFF,#5856D6);color:#fff;border:none;font-size:18px;font-weight:700;cursor:pointer">Tourner la roue !</button>' +
+    '</div>';
+}
+
+function renderPhoneReady(state) {
+  var d = state.data || {};
+  var myReady = _playerNum === 1 ? d.p1ready : d.p2ready;
+  return '<div style="padding:20px">' +
+    '<div style="text-align:center;margin-bottom:20px">' +
+    '<div style="font-size:50px">' + (d.gameEmoji||'🎮') + '</div>' +
+    '<div style="font-size:20px;font-weight:800;margin-top:8px">' + (d.gameName||'') + '</div>' +
+    '</div>' +
+    '<div style="background:rgba(255,255,255,.06);border-radius:14px;padding:16px;margin-bottom:20px;font-size:13px;color:rgba(255,255,255,.7);line-height:1.8">' + (d.rules||'') + '</div>' +
+    (myReady ?
+      '<div style="text-align:center;padding:20px;background:rgba(52,199,89,.15);border:2px solid #34C759;border-radius:18px;font-size:18px;font-weight:700;color:#34C759">✅ Tu es prêt !</div>' :
+      '<button onclick="fbPlayerAction(\'ready\')" style="width:100%;padding:18px;border-radius:50px;background:linear-gradient(135deg,#34C759,#30D158);color:#fff;border:none;font-size:17px;font-weight:700;cursor:pointer">✅ Je suis prêt !</button>'
+    ) + '</div>';
+}
+
+function renderPhoneRecap(state) {
+  var sc = state.scores || {};
+  return '<div style="text-align:center;padding:30px">' +
+    '<div style="font-size:50px;margin-bottom:16px">📊</div>' +
+    '<div style="font-size:20px;font-weight:800;margin-bottom:20px">Scores</div>' +
+    '<div style="display:flex;gap:10px;justify-content:center">' +
+    '<div style="flex:1;background:rgba(255,255,255,.06);border-radius:16px;padding:16px;text-align:center"><div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:6px">' + (sc.p1||'J1') + '</div><div style="font-size:32px;font-weight:800;color:#FFD60A">' + (sc.s1||0) + '</div></div>' +
+    '<div style="flex:1;background:rgba(255,255,255,.06);border-radius:16px;padding:16px;text-align:center"><div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:6px">' + (sc.p2||'J2') + '</div><div style="font-size:32px;font-weight:800;color:#FFD60A">' + (sc.s2||0) + '</div></div>' +
+    '</div></div>';
+}
+
+function renderPhoneGame(state) {
+  var gid = state.gameId || '';
+  var d = state.data || {};
+  if (gid === 'quiz-musical' || gid === 'blind-test') return renderPhoneBuzz(d);
+  if (gid === 'survival') return renderPhoneSurvival(d);
+  if (gid === 'escape-room') return renderPhoneEscape(d);
+  if (gid === 'baccalaureat') return renderPhoneBac(d);
+  if (gid === 'on-se-complete') return renderPhoneOsc(d);
+  if (gid === 'logique-coop') return renderPhoneLogic(d);
+  if (gid === 'verite-defi') return renderPhoneVod(d);
+  if (gid === 'timer-challenge') return renderPhoneTC(d);
+  if (gid === 'devinez-mot') return '<div style="text-align:center;padding:40px"><div style="font-size:64px;margin-bottom:16px">🎤</div><div style="font-size:18px;font-weight:800;margin-bottom:8px">Devinez le mot !</div><div style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.6">Faites deviner le mot à l\'autre joueur sans le dire ni le mimer.<br><br>Regardez l\'écran principal pour voir le mot.</div></div>';
+  if (gid === 'tu-me-connais') return '<div style="text-align:center;padding:40px"><div style="font-size:64px;margin-bottom:16px">❤️</div><div style="font-size:18px;font-weight:800;margin-bottom:8px">Tu me connais ?</div><div style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.6">Répondez chacun en secret sur l\'écran principal,<br>puis révélez vos réponses !</div></div>';
+  return '<div style="text-align:center;padding:40px"><div style="font-size:50px;margin-bottom:12px">👀</div><div style="font-size:16px;font-weight:700">Regardez l\'écran ensemble !</div></div>';
+}
+
+function renderPhoneBuzz(d) {
+  if (d.buzzed) {
+    var mine = d.buzzedBy === _playerNum;
+    return '<div style="text-align:center;padding:30px"><div style="font-size:60px;margin-bottom:16px">' + (mine?'🎯':'❌') + '</div><div style="font-size:18px;font-weight:700">' + (mine?'Tu as buzzé !':'L\'autre a buzzé en premier') + '</div>' + (d.answer?'<div style="margin-top:16px;font-size:13px;color:rgba(255,255,255,.5)">Réponse : '+d.answer+'</div>':'') + '</div>';
+  }
+  var q = d.question || '';
+  return '<div style="padding:20px">' +
+    (q ? '<div style="background:rgba(255,255,255,.06);border-radius:16px;padding:16px;margin-bottom:20px;font-size:14px;line-height:1.6">' + q + '</div>' : '') +
+    '<button onclick="fbPlayerAction(\'buzz:' + _playerNum + '\')" style="width:100%;padding:24px;border-radius:50px;background:linear-gradient(135deg,#FF2D55,#FF375F);color:#fff;border:none;font-size:24px;font-weight:800;cursor:pointer;box-shadow:0 8px 30px rgba(255,45,85,.4)">🔔 BUZZER !</button>' +
+    '</div>';
+}
+
+function renderPhoneSurvival(d) {
+  if (!d.choices) return '<div style="text-align:center;padding:40px"><div style="font-size:14px;color:rgba(255,255,255,.4)">En attente...</div></div>';
+  if (d.answered) return '<div style="text-align:center;padding:30px"><div style="font-size:50px;margin-bottom:12px">✅</div><div style="font-size:16px;font-weight:700">Réponse envoyée !</div></div>';
+  var html = '<div style="padding:16px">';
+  if (d.scenario) html += '<div style="background:rgba(255,255,255,.06);border-radius:14px;padding:14px;margin-bottom:16px;font-size:13px;line-height:1.6">' + d.scenario + '</div>';
+  d.choices.forEach(function(c, i) {
+    html += '<button onclick="fbPlayerAction(\'surv_pick:' + i + '\')" style="width:100%;padding:14px;border-radius:14px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:10px;text-align:left">' + c + '</button>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function renderPhoneEscape(d) {
+  if (!d.enigma) return '<div style="text-align:center;padding:40px"><div style="font-size:14px;color:rgba(255,255,255,.4)">En attente...</div></div>';
+  return '<div style="padding:16px"><div style="background:rgba(255,255,255,.06);border-radius:14px;padding:16px;margin-bottom:16px;font-size:14px;line-height:1.6">' + d.enigma + '</div>' +
+    '<div style="display:flex;gap:8px"><input id="esc-ph-inp" class="inp" placeholder="Votre réponse..." style="flex:1"><button onclick="var v=document.getElementById(\'esc-ph-inp\').value.trim();if(v){fbPlayerAction(\'esc_answer:\'+v);document.getElementById(\'esc-ph-inp\').value=\'\';}" style="padding:12px 20px;border-radius:12px;background:linear-gradient(135deg,#007AFF,#5856D6);color:#fff;border:none;font-weight:700;cursor:pointer;white-space:nowrap">Envoyer →</button></div></div>';
+}
+
+function renderPhoneBac(d) {
+  if (!d.letter) return '<div style="text-align:center;padding:40px"><div style="font-size:14px;color:rgba(255,255,255,.4)">En attente...</div></div>';
+  if (d['sent' + _playerNum]) return '<div style="text-align:center;padding:30px"><div style="font-size:50px;margin-bottom:12px">✅</div><div style="font-size:16px;font-weight:700">Réponses envoyées !</div></div>';
+  var cats = d.categories || [];
+  var html = '<div style="padding:16px"><div style="text-align:center;margin-bottom:20px"><div style="font-size:72px;font-weight:800;color:#FFD60A;font-family:Syne,sans-serif">' + d.letter + '</div><div style="font-size:12px;color:rgba(255,255,255,.4)">Écris un mot commençant par ' + d.letter + '</div></div>';
+  cats.forEach(function(cat, i) {
+    html += '<div style="margin-bottom:12px"><div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">' + cat + '</div><input id="bac-ph-' + i + '" class="inp" placeholder="' + d.letter + '..." maxlength="30"></div>';
+  });
+  html += '<button onclick="var ans=[];for(var i=0;i<' + cats.length + ';i++){var el=document.getElementById(\'bac-ph-\'+i);ans.push(el?el.value.trim():\'\');}fbPlayerAction(\'bac_send:\'+JSON.stringify(ans));" style="width:100%;padding:15px;border-radius:50px;background:linear-gradient(135deg,#007AFF,#5856D6);color:#fff;border:none;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px">Envoyer mes réponses ✓</button></div>';
+  return html;
+}
+
+function renderPhoneOsc(d) {
+  if (!d.prompt) return '<div style="text-align:center;padding:40px"><div style="font-size:14px;color:rgba(255,255,255,.4)">En attente...</div></div>';
+  if (d['sent' + _playerNum]) return '<div style="text-align:center;padding:30px"><div style="font-size:50px;margin-bottom:12px">✅</div><div style="font-size:16px;font-weight:700">Réponse envoyée !</div></div>';
+  return '<div style="padding:20px"><div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:8px">Complète la phrase :</div><div style="background:rgba(255,255,255,.08);border-radius:14px;padding:16px;margin-bottom:20px;font-size:16px;font-weight:700;line-height:1.6">' + d.prompt + '</div><textarea id="osc-ph-inp" class="txtarea" placeholder="Ta réponse..." style="margin-bottom:12px"></textarea><button onclick="var v=document.getElementById(\'osc-ph-inp\').value.trim();if(v)fbPlayerAction(\'osc_send:\'+v)" style="width:100%;padding:15px;border-radius:50px;background:linear-gradient(135deg,#007AFF,#5856D6);color:#fff;border:none;font-size:15px;font-weight:700;cursor:pointer">Envoyer ✓</button></div>';
+}
+
+function renderPhoneLogic(d) {
+  if (!d.opts) return '<div style="text-align:center;padding:40px"><div style="font-size:14px;color:rgba(255,255,255,.4)">En attente...</div></div>';
+  if (d.answered) return '<div style="text-align:center;padding:30px"><div style="font-size:50px;margin-bottom:12px">✅</div><div style="font-size:16px;font-weight:700">Réponse envoyée !</div></div>';
+  var html = '<div style="padding:16px"><div style="background:rgba(255,255,255,.06);border-radius:14px;padding:16px;margin-bottom:16px;font-size:14px;line-height:1.6">' + (d.q||'') + '</div>';
+  d.opts.forEach(function(opt, i) {
+    html += '<button onclick="fbPlayerAction(\'log_pick:' + i + '\')" style="width:100%;padding:15px;border-radius:14px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:10px;text-align:left">' + String.fromCharCode(65+i) + '. ' + opt + '</button>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function renderPhoneVod(d) {
+  if (!d.card) return '<div style="text-align:center;padding:40px"><div style="font-size:14px;color:rgba(255,255,255,.4)">En attente...</div></div>';
+  if (d.targetPlayer !== _playerNum) return '<div style="text-align:center;padding:40px"><div style="font-size:40px;margin-bottom:12px">👀</div><div style="font-size:15px;color:rgba(255,255,255,.6)">C\'est au tour de l\'autre joueur</div></div>';
+  return '<div style="padding:20px"><div style="background:rgba(255,255,255,.06);border-radius:18px;padding:24px;margin-bottom:20px;text-align:center"><div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.4);margin-bottom:12px">' + (d.type||'') + '</div><div style="font-size:18px;font-weight:700;line-height:1.6">' + d.card + '</div></div><div style="display:flex;gap:12px"><button onclick="fbPlayerAction(\'vod_realise\')" style="flex:1;padding:16px;border-radius:50px;background:rgba(52,199,89,.15);border:1px solid rgba(52,199,89,.3);color:#34C759;font-family:inherit;font-weight:700;font-size:15px;cursor:pointer">✓ Réalisé</button><button onclick="fbPlayerAction(\'vod_refuse\')" style="flex:1;padding:16px;border-radius:50px;background:rgba(255,59,48,.1);border:1px solid rgba(255,59,48,.2);color:#FF3B30;font-family:inherit;font-weight:700;font-size:15px;cursor:pointer">✗ Refusé</button></div></div>';
+}
+
+function renderPhoneTC(d) {
+  if (d.phase === 'validate' && d.validatorPlayer === _playerNum) {
+    return '<div style="padding:20px"><div style="font-size:16px;font-weight:700;margin-bottom:20px;text-align:center">Combien de bonnes réponses ?</div><input id="tc-ph-score" type="number" min="0" max="99" class="inp" placeholder="0" style="font-size:28px;text-align:center;margin-bottom:16px"><button onclick="var v=parseInt(document.getElementById(\'tc-ph-score\').value||\'0\');fbPlayerAction(\'tc_score:\'+v)" style="width:100%;padding:15px;border-radius:50px;background:linear-gradient(135deg,#007AFF,#5856D6);color:#fff;border:none;font-size:15px;font-weight:700;cursor:pointer">Valider ✓</button></div>';
+  }
+  if (d.phase === 'playing' && d.playingPlayer === _playerNum) {
+    return '<div style="text-align:center;padding:40px"><div style="font-size:60px;margin-bottom:16px">⏱️</div><div style="font-size:22px;font-weight:800">C\'est ton tour !</div><div style="font-size:14px;color:rgba(255,255,255,.4);margin-top:8px">Réponds au défi sur l\'écran principal</div></div>';
+  }
+  return '<div style="text-align:center;padding:40px"><div style="font-size:40px;margin-bottom:12px">👀</div><div style="font-size:16px;color:rgba(255,255,255,.6)">Regardez l\'écran principal</div></div>';
+}
+
+// ── STUB HANDLERS (host side, called when phone sends action) ──
+function receiveBacPhone(playerNum, jsonStr) {
+  // Mark this player's answers as sent in Firebase
+  var upd = { letter: S.bacLet||'?', categories: BAC_CATS, sent1: false, sent2: false };
+  upd['sent' + playerNum] = true;
+  fbPushGame('baccalaureat', upd);
+}
+function receiveOscPhone(playerNum, val) {
+  var oscQ = OSC_ALL[S.oscI % OSC_ALL.length];
+  var upd = { prompt: oscQ?oscQ.phrase:'', sent1: false, sent2: false };
+  upd['sent' + playerNum] = true;
+  fbPushGame('on-se-complete', upd);
+}
+
+// ── PUSH HELPERS called from game renderers ────────────────────
+function fbPushWheel(spinning, result, resultEmoji) {
+  fbPush({ screen: 'wheel', ts: Date.now(), scores: fbScores(), data: { spinning: spinning, result: result, resultEmoji: resultEmoji } });
+}
+function fbPushReady(gameId) {
+  var meta = GMETA[gameId] || {};
+  fbPush({ screen: 'ready', gameId: gameId, ts: Date.now(), scores: fbScores(), data: { gameName: meta.name||'', gameEmoji: meta.emoji||'🎮', rules: GAME_RULES[gameId]||'', p1ready: window._readyP1||false, p2ready: window._readyP2||false } });
+}
+function fbPushGame(gameId, data) {
+  fbPush({ screen: 'game', gameId: gameId, ts: Date.now(), scores: fbScores(), data: data || {} });
+}
+function fbPushRecap() {
+  fbPush({ screen: 'recap', ts: Date.now(), scores: fbScores(), data: {} });
+}
+function fbScores() { return { s1: S.s1, s2: S.s2, p1: S.p1.name, p2: S.p2.name }; }
+
+
+// ══════════════════════════
+// READY SCREEN
+// ══════════════════════════
+var GAME_RULES = {
+  'quiz-musical':    "Une question musicale s'affiche. Buzzez en premier si vous connaissez la réponse ! Passer = -2 pts.",
+  'survival':        "Un scénario de survie avec 4 choix. Discutez ensemble. Bonne réponse = +10% de vie. Mauvaise = -20% de vie.",
+  'blind-test':      "Un indice ou une réplique s'affiche. Buzzez en premier et donnez le titre de la série ! Passer = -2 pts.",
+  'escape-room':     "Des énigmes à résoudre ensemble. 3 vies par énigme. Bonne réponse = +2 pts. Passer = -2 pts.",
+  'timer-challenge':  "Un défi s'affiche. Chacun son tour ! Max de réponses en 30 secondes. L'adversaire valide le score.",
+  'devinez-mot':     "Un mot s'affiche. Faites-le deviner sans le dire ni mimer. 10 minutes pour le maximum de mots !",
+  'baccalaureat':    "Une lettre est tirée. Remplissez les cases avec des mots commençant par cette lettre. 7 manches !",
+  'on-se-complete':  "Une phrase à compléter. Chacun écrit en secret. Révélations simultanées ! Similaires = plus de points.",
+  'verite-defi':     "Une carte Vérité ou Défi. Réalisé = +2 pts. Refusé = -1 pt. Passer = -2 pts.",
+  'logique-coop':    "Une énigme logique. Réfléchissez ENSEMBLE. Bonne réponse = points selon difficulté. Mauvaise = -2 pts.",
+  'tu-me-connais':   "Une question intime. Chacun répond en secret. Qui connaît le mieux l'autre ?"
+};
+
+var _readyP1 = false, _readyP2 = false;
+var _dlmTmr = null;
+var __dlmRunning = false;
+function showReadyScreen(gameId, cb) {
+  _readyP1 = false; _readyP2 = false;
+  var meta = GMETA[gameId];
+  {var _e=document.getElementById('ready-game-name'); if(_e) _e.textContent=meta.emoji + ' ' + meta.name;}
+  {var _e=document.getElementById('ready-rules'); if(_e) _e.textContent=GAME_RULES[gameId] || 'Bonne chance !';}
+  
+  var p1 = S.p1, p2 = S.p2;
+  {var _e=document.getElementById('rp1-av'); if(_e) _e.innerHTML=p1.avatar ? '<img src="'+p1.avatar+'" style="width:40px;height:40px;border-radius:50%;object-fit:cover">' : '👤';}
+  {var _e=document.getElementById('rp1-name'); if(_e) _e.textContent=p1.name;}
+  {var _e=document.getElementById('rp2-av'); if(_e) _e.innerHTML=p2.avatar ? '<img src="'+p2.avatar+'" style="width:40px;height:40px;border-radius:50%;object-fit:cover">' : '👤';}
+  {var _e=document.getElementById('rp2-name'); if(_e) _e.textContent=p2.name;}
+  
+  var btn1 = document.getElementById('ready-p1-btn');
+  var btn2 = document.getElementById('ready-p2-btn');
+  btn1.style.borderColor = 'rgba(255,255,255,.15)'; btn1.style.background = 'rgba(255,255,255,.05)';
+  btn2.style.borderColor = 'rgba(255,255,255,.15)'; btn2.style.background = 'rgba(255,255,255,.05)';
+  {var _e=document.getElementById('ready-status'); if(_e) _e.textContent='En attente des deux joueurs...';}
+  
+  window._readyCb = cb;
+  showScreen('s-ready');
+  setTimeout(function(){
+    S.curGame = gameId;
+    fbPushReady(gameId);
+  }, 100);
+}
+function playerReady(p) {
+  sndOK();
+  var p1 = S.p1, p2 = S.p2;
+  if (p === 1) {
+    _readyP1 = true;
+    var btn = document.getElementById('ready-p1-btn');
+    btn.style.borderColor = p1.color; btn.style.background = p1.color+'22';
+    btn.innerHTML = '<div style="font-size:32px">✅</div><div>'+p1.name+'</div><div style="font-size:11px;margin-top:4px;color:'+p1.color+'">Prêt !</div>';
+  } else {
+    _readyP2 = true;
+    var btn2 = document.getElementById('ready-p2-btn');
+    btn2.style.borderColor = p2.color; btn2.style.background = p2.color+'22';
+    btn2.innerHTML = '<div style="font-size:32px">✅</div><div>'+p2.name+'</div><div style="font-size:11px;margin-top:4px;color:'+p2.color+'">Prêt !</div>';
+  }
+  if (_readyP1 && _readyP2) {
+    {var _e=document.getElementById('ready-status'); if(_e) _e.textContent='🚀 Les deux joueurs sont prêts !';}
+    setTimeout(function() { if (window._readyCb) window._readyCb(); }, 600);
+  } else {
+    {var _e=document.getElementById('ready-status'); if(_e) _e.textContent=(_readyP1 ? p1.name : p2.name) + ' est pret - en attente de l\'autre joueur...';}
+  }
+}
+
+// ══════════════════════════
+// AUDIO
+// ══════════════════════════
+var AC;
+try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+function beep(f,d,t,g,dl) {
+  if (!AC) return;
+  t = t||'sine'; g = g||0.3; dl = dl||0;
+  setTimeout(function() {
+    try {
+      var o = AC.createOscillator(), gn = AC.createGain();
+      o.connect(gn); gn.connect(AC.destination);
+      o.type = t; o.frequency.value = f;
+      gn.gain.setValueAtTime(g, AC.currentTime);
+      gn.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + d);
+      o.start(); o.stop(AC.currentTime + d);
+    } catch(e) {}
+  }, dl * 1000);
+}
+function sndOK() { beep(523,.1); beep(659,.1,'sine',.3,.12); beep(784,.2,'sine',.3,.24); }
+function sndBad() { beep(220,.3,'sawtooth',.2); }
+function sndBuzz() { beep(800,.05); beep(1000,.05,'sine',.3,.07); beep(1200,.1,'sine',.3,.14); }
+function sndWin() { [523,659,784,1047].forEach(function(f,i){ beep(f,.25,'sine',.3,i*.15); }); }
+function sndTick() { beep(600,.05,'square',.08); }
+
+// ══════════════════════════
+// SPEECH
+// ══════════════════════════
+function speak(txt) {
+  if (!window.speechSynthesis) return;
+  try {
+    speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(txt);
+    u.lang = 'fr-FR'; u.rate = .95; u.pitch = 1.05; u.volume = .9;
+    var vs = speechSynthesis.getVoices();
+    var fv = vs.find(function(v){ return v.lang.startsWith('fr'); });
+    if (fv) u.voice = fv;
+    speechSynthesis.speak(u);
+  } catch(e) {}
+}
+
+// ══════════════════════════
+// STATE
+// ══════════════════════════
+var S = {
+  p1: {name:'Joueur 1', color:'#007AFF', avatar:null},
+  p2: {name:'Joueur 2', color:'#FF2D55', avatar:null},
+  s1:0, s2:0, manche:1, totalM:3,
+  gOrder:[], gIdx:0, giftLeft:3, buzzCnt:0,
+  quizI:0, tmkI:0, logI:0, oscI:0, dlmI:0, vodI:0, btI:0,
+  survScnIdx:0, survScIdx:0, survHp:100,
+  escScnIdx:0, escEnIdx:0, escHp:3,
+  tcI:0, bacManche:0, bacLet:'', bacTmr:null, bacSecs:90,
+  tmrInt:null, curGame:null, gageI:0, gageFinI:0,
+  // per-game state (reset each game)
+  buzzed:false, passeFn:null, curVodPlayer:1
+};
+
+var GORDER = ['quiz-musical','survival','blind-test','escape-room','timer-challenge','devinez-mot','baccalaureat','on-se-complete','verite-defi','logique-coop','tu-me-connais'];
+var GMETA = {
+  'quiz-musical':    {name:'Quiz Musical',     emoji:'🎵', type:'vs',   desc:'Buzzez le premier et répondez !'},
+  'survival':        {name:'Survival',          emoji:'🏝️', type:'coop', desc:'Prenez les meilleures décisions pour survivre !'},
+  'blind-test':      {name:'Blind Test Cinéma', emoji:'🎬', type:'vs',   desc:'Reconnaissez le film à partir de l\'indice !'},
+  'escape-room':     {name:'Escape Room',       emoji:'🔐', type:'coop', desc:'Résolvez les énigmes ensemble pour vous échapper !'},
+  'timer-challenge': {name:'Timer Challenge',   emoji:'⏱️', type:'vs',   desc:'Nommez le maximum de réponses en 30 secondes !'},
+  'devinez-mot':     {name:'Devinez le Mot',    emoji:'🗣️', type:'coop', desc:'Faites deviner le mot sans le dire ni le mimer !'},
+  'baccalaureat':    {name:'Baccalauréat',      emoji:'📝', type:'vs',   desc:'Remplissez toutes les cases avant la fin du temps !'},
+  'on-se-complete':  {name:'On se Complète',    emoji:'✍️', type:'coop', desc:'Complétez la phrase ensemble !'},
+  'verite-defi':     {name:'Vérité ou Défi',    emoji:'💭', type:'vs',   desc:'Vérité intime ou défi fun !'},
+  'logique-coop':    {name:'Test de Logique',   emoji:'🧠', type:'coop', desc:'Résolvez les énigmes logiques ensemble !'},
+  'tu-me-connais':   {name:'Tu me Connais ?',   emoji:'❓', type:'vs',   desc:'Qui connaît le mieux l\'autre ?'}
+};
+var GAGES = ['Faire un compliment sincère à l\'autre','Laisser l\'autre choisir ce qu\'on regarde','Faire 15 squats ou 10 pompes 💪','Raconter un souvenir gênant sans rien cacher','Garder une expression sérieuse pendant 1 minute','Danser 30 secondes sur une chanson choisie par l\'autre 💃','Bisou sur la partie du corps que t\'aimes le plus chez l\'autre 😏','Parler avec un accent étranger pendant 2 minutes','Mimique de célébrité que l\'autre doit deviner','Faire le robot ou une chorée ridicule 🤖','Répondre aux 3 prochaines questions en chantant 🎤','Imiter l\'autre pendant 3 minutes — voix, gestes, tout','Dire 5 vérités sur toi sans réfléchir'];
+var WCOLS = ['#007AFF','#5856D6','#FF2D55','#FF9F0A','#34C759','#5AC8FA','#BF5AF2','#FF6B35','#30D158','#64D2FF','#FFD60A'];
+var TOTAL_SECS = 60;
+var CIRC = 125.6;
+
+// ══════════════════════════
+// SCREENS
+// ══════════════════════════
+function showScreen(id) {
+  if (id !== 's-game') { stopTmr(); }
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  var _scr = document.getElementById(id); if (_scr) _scr.classList.add('active');
+}
+
+// ══════════════════════════
+// HOME
+// ══════════════════════════
+function loadAv(p, inp) {
+  var f = inp.files[0]; if (!f) return;
+  var r = new FileReader();
+  r.onload = function(e) {
+    var img = document.getElementById('av'+p+'img');
+    img.src = e.target.result; img.style.display = 'block';
+    {var _e=document.getElementById('av'+p+'ico'); if(_e) _e.style.display='none';}
+    S['p'+p].avatar = e.target.result;
+  };
+  r.readAsDataURL(f);
+}
+function selC(p, c, el) {
+  document.querySelectorAll('#cd'+p+' .cdot').forEach(function(d){ d.classList.remove('sel'); });
+  el.classList.add('sel');
+  S['p'+p].color = c;
+}
+function startGame() {
+  try { if (AC && AC.state === 'suspended') AC.resume(); } catch(e) {}
+  S.p1.name = document.getElementById('n1').value.trim() || 'Joueur 1';
+  S.p2.name = document.getElementById('n2').value.trim() || 'Joueur 2';
+  S.s1 = 0; S.s2 = 0; S.manche = 1; S.gIdx = 0;
+  S.gOrder = GORDER.slice();
+  S.giftLeft = 3; S.buzzCnt = 0;
+  updTB(); showScreen('s-wheel'); drawWheel();
+}
+
+// ══════════════════════════
+// TOPBAR
+// ══════════════════════════
+function avEl(p, sz) {
+  sz = sz || 24;
+  var pl = S['p'+p];
+  if (pl.avatar) return '<img class="savimg" src="'+pl.avatar+'" style="width:'+sz+'px;height:'+sz+'px;border-radius:50%;object-fit:cover">';
+  return '<div class="savp" style="background:'+pl.color+'22;color:'+pl.color+';width:'+sz+'px;height:'+sz+'px">'+pl.name[0]+'</div>';
+}
+function tbHTML(p) {
+  return avEl(p) + '<span class="sname">' + S['p'+p].name + '</span><span class="spts">' + S['s'+p] + '</span>';
+}
+function updTB() {
+  ['w-tb1','g-tb1','rec-tb1'].forEach(function(id){ var e=document.getElementById(id); if(e) e.innerHTML=tbHTML(1); });
+  ['w-tb2','g-tb2','rec-tb2'].forEach(function(id){ var e=document.getElementById(id); if(e) e.innerHTML=tbHTML(2); });
+  var m = 'MANCHE ' + S.manche;
+  ['w-tbm','g-tbm','rec-tbm'].forEach(function(id){ var e=document.getElementById(id); if(e) e.textContent=m; });
+}
+function addPts(p, n) {
+  S['s'+p] += n; updTB();
+  var ids = p===1 ? ['w-tb1','g-tb1'] : ['w-tb2','g-tb2'];
+  ids.forEach(function(id) {
+    var e = document.getElementById(id);
+    if (e) { e.style.borderColor = S['p'+p].color; setTimeout(function(){ e.style.borderColor=''; }, 600); }
+  });
+}
+function penalize() {
+  S.s1 = Math.max(0, S.s1-2);
+  S.s2 = Math.max(0, S.s2-2);
+  updTB();
+}
+
+// ══════════════════════════
+// WHEEL
+// ══════════════════════════
+var wAngle = 0, wSpin = false, wCurGame = null;
+function drawWheel(hi) {
+  hi = hi !== undefined ? hi : -1;
+  var cv = document.getElementById('wc'); if (!cv) return;
+  var ctx = cv.getContext('2d');
+  var cx=140, cy=140, r=136, n=S.gOrder.length;
+  ctx.clearRect(0,0,280,280);
+  S.gOrder.forEach(function(gid, i) {
+    var sa = wAngle + (i/n)*Math.PI*2 - Math.PI/2;
+    var ea = wAngle + ((i+1)/n)*Math.PI*2 - Math.PI/2;
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,sa,ea); ctx.closePath();
+    ctx.fillStyle = (hi===i) ? '#FFD60A' : WCOLS[i%WCOLS.length];
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,.5)'; ctx.lineWidth = 1.5; ctx.stroke();
+    var ma = (sa+ea)/2, tx = cx+Math.cos(ma)*r*.67, ty = cy+Math.sin(ma)*r*.67;
+    ctx.save(); ctx.translate(tx,ty); ctx.rotate(ma+Math.PI/2);
+    ctx.font = '13px serif'; ctx.textAlign = 'center';
+    ctx.fillText(GMETA[gid].emoji, 0, 0); ctx.restore();
+  });
+  ctx.beginPath(); ctx.arc(cx,cy,20,0,Math.PI*2);
+  ctx.fillStyle = '#000'; ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.15)'; ctx.lineWidth = 1; ctx.stroke();
+}
+function spinWheel() {
+  if (wSpin) return;
+  if (S.gIdx >= S.gOrder.length) { showRecap(); return; }
+  wSpin = true;
+  fbPushWheel(true, null, null);
+  var _wspin=document.getElementById('wspin'); if(_wspin) _wspin.style.display='none';
+  {var _e=document.getElementById('wres'); if(_e) _e.textContent='';}
+  {var _e=document.getElementById('wnxt'); if(_e) _e.style.display='none';}
+  var tg = S.gOrder[S.gIdx], n = S.gOrder.length, ti = S.gIdx % n;
+  var sliceA = (2*Math.PI)/n, ta = -(ti*sliceA);
+  var spins = 4 + Math.random()*2, fa = ta + spins*Math.PI*2;
+  var start = null, dur = 3200, startA = wAngle;
+  function anim(ts) {
+    if (!start) start = ts;
+    var el = ts-start, prog = Math.min(el/dur,1), ease = 1-Math.pow(1-prog,4);
+    wAngle = startA + (fa-startA)*ease;
+    drawWheel();
+    if (prog < 1) { requestAnimationFrame(anim); return; }
+    wAngle = fa % (Math.PI*2); wCurGame = tg; drawWheel(ti); wSpin = false;
+    var meta = GMETA[tg];
+    {var _e=document.getElementById('wres'); if(_e) _e.textContent=meta.emoji + ' ' + meta.name;}
+    var gp = document.getElementById('wgprev');
+    {var _e=document.getElementById('wgpemoji'); if(_e) _e.textContent=meta.emoji;}
+    {var _e=document.getElementById('wgpname'); if(_e) _e.textContent=meta.name;}
+    var tag = document.getElementById('wgptag');
+    tag.textContent = meta.type==='vs' ? '⚔️ COMPÉTITIF' : '⚡ ÉQUIPE';
+    tag.style.color = meta.type==='vs' ? '#FF2D55' : '#34C759';
+    if (gp) gp.style.display = 'flex';
+    var _wnxt = document.getElementById('wnxt'); if (_wnxt) _wnxt.style.display = 'block';
+    sndOK();
+  }
+  sndBuzz(); requestAnimationFrame(anim);
+}
+function launchGame() {
+  if (!wCurGame) return;
+  S.curGame = wCurGame;
+  showReadyScreen(wCurGame, function() {
+    countdown(function() { showScreen('s-game'); renderGame(wCurGame); });
+  });
+}
+
+// ══════════════════════════
+// COUNTDOWN
+// ══════════════════════════
+function countdown(cb) {
+  showScreen('s-cd');
+  fbPush({ screen: 'countdown', ts: Date.now(), scores: fbScores(), data: { gameName: S.curGame } });
+  var meta = GMETA[S.curGame];
+  {var _e=document.getElementById('cdgn'); if(_e) _e.textContent=meta.emoji + ' ' + meta.name;}
+  var n = 3;
+  var el = document.getElementById('cdnum');
+  el.textContent = n;
+  el.style.animation = 'none';
+  speak(meta.name + '. ' + meta.desc);
+  var iv = setInterval(function() {
+    n--;
+    if (n > 0) {
+      el.style.animation = 'none'; el.offsetHeight; el.style.animation = 'cdpop .5s cubic-bezier(.34,1.56,.64,1)';
+      el.textContent = n;
+    } else {
+      clearInterval(iv);
+      el.textContent = 'GO !'; sndWin();
+      setTimeout(cb, 700);
+    }
+  }, 900);
+}
+
+// ══════════════════════════
+// TIMER
+// ══════════════════════════
+function fmtT(s) { var m=Math.floor(s/60),ss=s%60; return m+':'+(ss<10?'0':'')+ss; }
+function stopTmr() {
+  if (S.tmrInt) { clearInterval(S.tmrInt); S.tmrInt = null; }
+  if (S.bacTmr) { clearInterval(S.bacTmr); S.bacTmr = null; }
+  if (typeof _dlmTmr !== 'undefined' && _dlmTmr) { clearInterval(_dlmTmr); _dlmTmr = null; }
+  if (window._tcKill) { window._tcKill(); window._tcKill = null; }
+}
+function startTmr(total, onEnd) {
+  stopTmr();
+  var secs = total;
+  updTmrUI(secs, total);
+  S.tmrInt = setInterval(function() {
+    secs--; updTmrUI(secs, total); sndTick();
+    if (secs <= 0) { stopTmr(); onEnd(); }
+  }, 1000);
+}
+function updTmrUI(secs, total) {
+  var arc = document.getElementById('gt-arc'), disp = document.getElementById('gt-disp');
+  if (!arc || !disp) return;
+  var pct = secs/total;
+  arc.style.strokeDashoffset = CIRC*(1-pct);
+  var col = secs>30 ? '#007AFF' : secs>15 ? '#FF9F0A' : '#FF3B30';
+  arc.style.stroke = col;
+  disp.textContent = fmtT(secs);
+  disp.style.color = secs>30 ? '#fff' : col;
+}
+function timerHTML() {
+  return '<div class="timerrow"><svg class="tsvg" width="48" height="48" viewBox="0 0 48 48"><circle class="tcbg" cx="24" cy="24" r="20"/><circle class="tcarc" id="gt-arc" cx="24" cy="24" r="20" stroke-dasharray="125.6" stroke-dashoffset="0" stroke="#007AFF"/></svg><div style="flex:1"><div class="ttime" id="gt-disp">1:30</div><div class="tlbl">TEMPS RESTANT</div></div><button class="btn-xs" id="gt-pass" onclick="doPasse()">⏭ Passer (-2)</button></div>';
+}
+function doPasse() {
+  stopTmr();
+  penalize();
+  var _gp=document.getElementById('gt-pass'); if(_gp) _gp.disabled=true;
+  if (S.passeFn) S.passeFn();
+}
+
+// ══════════════════════════
+// GAME ENGINE
+// ══════════════════════════
+function endGame() {
+  stopTmr();
+  S.gIdx++;
+  if (S.gIdx >= S.gOrder.length) {
+    showRecap();
+  } else {
+    wCurGame = null;
+    showScreen('s-wheel');
+    var _ws=document.getElementById('wspin'); if(_ws) _ws.style.display='block';
+    var _wn=document.getElementById('wnxt'); if(_wn) _wn.style.display='none';
+    var _wr=document.getElementById('wres'); if(_wr) _wr.textContent='';
+    var _wp=document.getElementById('wgprev'); if(_wp) _wp.style.display='none';
+    drawWheel(); updTB(); fbPushWheel(false, null, null);
+  }
+}
+function renderGame(id) {
+  stopTmr();
+  S.buzzed = false; S.passeFn = null;
+  var m = GMETA[id];
+  var tt = '<span class="gtag '+(m.type==='vs'?'tvs':'tcoop')+'">'+(m.type==='vs'?'⚔️ VS':'⚡ ÉQUIPE')+'</span>';
+  var hdr = '<div class="ghpill fade-in"><span style="font-size:16px">'+m.emoji+'</span><h2>'+m.name+'</h2>'+tt+'</div>';
+  var body = '';
+  if      (id==='quiz-musical')    body = rQuiz();
+  else if (id==='survival')        body = rSurvival();
+  else if (id==='blind-test')      body = rBT();
+  else if (id==='escape-room')     body = rEscape();
+  else if (id==='timer-challenge') body = rTC();
+  else if (id==='devinez-mot')     body = rDLM();
+  else if (id==='baccalaureat')    body = rBac();
+  else if (id==='on-se-complete')  body = rOSC();
+  else if (id==='verite-defi')     body = rVOD();
+  else if (id==='logique-coop')    body = rLogic();
+  else if (id==='tu-me-connais')   body = rTMK();
+  var _gi = document.getElementById('ginner');
+  if (!_gi) return;
+  _gi.innerHTML = hdr + '<div class="slide-up" style="display:flex;flex-direction:column;gap:10px">' + body + '</div>';
+  updTB();
+  // Push game state to Firebase for phone sync
+  setTimeout(function() { fbPushGameState(id); }, 150);
+}
+function fbPushGameState(id) {
+  if (!_isHost) return;
+  var d = { activePlayer: 0, answered: false };
+  if (id === 'quiz-musical' || id === 'blind-test') {
+    var q = (id==='quiz-musical') ? QUIZ_ALL[S.quizI % QUIZ_ALL.length] : BT_ALL[S.btI % BT_ALL.length];
+    d.question = q ? (q.artist + ' — ' + (q.clue||q.series||'')) : '';
+    d.buzzed = false; d.answer = q ? q.answer : '';
+  } else if (id === 'survival') {
+    var scn = SURVIVAL[S.survScnIdx % SURVIVAL.length];
+    var sc = scn ? scn.scenes[S.survScIdx] : null;
+    d.scenario = sc ? sc.txt : '';
+    d.choices = sc ? sc.ch : [];
+    d.answered = false;
+  } else if (id === 'escape-room') {
+    var escScn = ESCAPE[S.escScnIdx % ESCAPE.length];
+    var en = escScn ? escScn.enigmes[S.escEnIdx] : null;
+    d.enigma = en ? en.q : '';
+    d.hint = en ? en.hint : '';
+  } else if (id === 'baccalaureat') {
+    d.letter = S.bacLet || BAC_LETS[Math.floor(Math.random()*BAC_LETS.length)];
+    d.categories = BAC_CATS;
+    d.sent1 = false; d.sent2 = false;
+  } else if (id === 'on-se-complete') {
+    var oscQ = OSC_ALL[S.oscI % OSC_ALL.length];
+    d.prompt = oscQ ? oscQ.phrase : '';
+    d.sent1 = false; d.sent2 = false;
+  } else if (id === 'logique-coop') {
+    var lq = LOGIC_ALL[S.logI % LOGIC_ALL.length];
+    d.q = lq ? lq.q : ''; d.opts = lq ? lq.opts : []; d.answered = false;
+  } else if (id === 'verite-defi') {
+    var vq = VOD_ALL[S.vodI % VOD_ALL.length];
+    d.card = vq ? vq.txt : ''; d.type = vq ? vq.type : ''; d.targetPlayer = vq ? vq.p : 0;
+  } else if (id === 'timer-challenge') {
+    var tq = TC_ALL[S.tcI % TC_ALL.length];
+    d.challenge = tq ? tq.defi : ''; d.phase = 'waiting';
+  }
+  fbPushGame(id, d);
+}
+function buzzCards() {
+  var p1 = S.p1, p2 = S.p2;
+  var av1 = p1.avatar ? '<img class="bavimg" src="'+p1.avatar+'">' : '<div class="bavp" style="background:'+p1.color+'22;color:'+p1.color+'">'+p1.name[0]+'</div>';
+  var av2 = p2.avatar ? '<img class="bavimg" src="'+p2.avatar+'">' : '<div class="bavp" style="background:'+p2.color+'22;color:'+p2.color+'">'+p2.name[0]+'</div>';
+  return '<div class="bgrid"><div class="bcard bc1" id="bz1" onclick="doBuzz(1)">'+av1+'<div class="bname">'+p1.name+'</div><div class="blbl">BUZZ !</div></div><div class="bcard bc2" id="bz2" onclick="doBuzz(2)">'+av2+'<div class="bname">'+p2.name+'</div><div class="blbl">BUZZ !</div></div></div>';
+}
+function doBuzz(p) {
+  if (S.buzzed) return;
+  S.buzzed = true; stopTmr(); sndBuzz(); S.buzzCnt++;
+  fbPushGame(S.curGame, { buzzed: true, buzzedBy: p, question: '' });
+  var _bz=document.getElementById('bz'+p); if(_bz) _bz.classList.add('win');
+  var _bzo=document.getElementById('bz'+(p===1?2:1)); if(_bzo) _bzo.classList.add('off');
+  document.querySelectorAll('.bcard').forEach(function(b){ b.style.pointerEvents='none'; });
+  var rb = document.getElementById('revbox'); if (rb) rb.classList.add('show');
+  var pt = document.getElementById('ptrow'); if (pt) pt.style.display = 'flex';
+  var pp = document.getElementById('gt-pass'); if (pp) pp.disabled = true;
+}
+function ptBtns() {
+  var p1=S.p1, p2=S.p2;
+  var gift = S.giftLeft>0 ? '<button class="btn btn-sm" style="background:rgba(255,214,10,.12);color:#FFD60A;border:1px solid rgba(255,214,10,.3)" id="gftbtn" onclick="doGift()">🎁 Offrir ('+S.giftLeft+')</button>' : '';
+  return '<div class="ptrow" id="ptrow" style="display:none"><button class="btn btn-sm" style="background:'+p1.color+'22;color:'+p1.color+';border:1px solid '+p1.color+'44" onclick="giveP(1)">+1 '+p1.name+'</button><button class="btn btn-sm" style="background:'+p2.color+'22;color:'+p2.color+';border:1px solid '+p2.color+'44" onclick="giveP(2)">+1 '+p2.name+'</button>'+gift+'</div><div id="gftinfo" style="font-size:11px;color:rgba(255,255,255,.3);text-align:center;min-height:16px"></div>';
+}
+function giveP(p) {
+  addPts(p,1); sndOK();
+  var pt=document.getElementById('ptrow'); if(pt) pt.style.display='none';
+  showNxt();
+}
+function doGift() {
+  if (S.giftLeft<=0) return;
+  S.giftLeft--;
+  var info=document.getElementById('gftinfo'); if(info) info.textContent='🎁 Point offert ! '+S.giftLeft+' cadeau'+(S.giftLeft!==1?'x':'')+' restant'+(S.giftLeft!==1?'s':'');
+  var pt=document.getElementById('ptrow'); if(pt) pt.style.display='none';
+  showNxt();
+}
+function showNxt() {
+  var n=document.getElementById('nxtbtn'); if(n) n.classList.add('show');
+}
+
+// ══════════════════════════
+// GAME DATA
+// ══════════════════════════
+var QUIZ_ALL = [
+  // RAP FR
+  {mode:'artist',genre:'Rap FR 🇫🇷',q:'Qui chante "Bleu Acide" ?',answer:'Tiakola',hint:'Afro-trap parisien, album 2023'},
+  {mode:'lyric',genre:'Rap FR 🇫🇷',song:'Djadja — Aya Nakamura',lyric:'[BLANK] m\'a dit qu\'il allait changer, faut croire qu\'il ment encore',blank:'Djadja',answer:'Djadja'},
+  {mode:'artist',genre:'Rap FR 🇫🇷',q:'Qui chante "La Mif" ?',answer:'L2B Gang',hint:'Collectif parisien sorti de nulle part'},
+  {mode:'artist',genre:'Rap FR 🇫🇷',q:'Qui chante "Mwaka Moon" ?',answer:'Kalash ft Damso',hint:'Martinique x Belgique, tube 2017, rythme inoubliable'},
+  {mode:'lyric',genre:'Rap FR 🇫🇷',song:'La Vie est Belle — Ninho',lyric:'Je veux juste être heureux, [BLANK] ça suffit',blank:'c\'est tout',answer:'c\'est tout'},
+  {mode:'artist',genre:'Rap FR 🇫🇷',q:'Qui chante "Chocolat" ?',answer:'Roméo Elvis & Le Motel',hint:'Duo franco-belge, clip le plus vu du rap fr en 2017'},
+  {mode:'artist',genre:'Rap FR 🇫🇷',q:'Qui chante "Validé" et dirige la série du même nom ?',answer:'SCH',hint:'Marseille, a aussi joué dans la série Netflix'},
+  {mode:'lyric',genre:'Rap FR 🇫🇷',song:'Bande Organisée — SCH',lyric:'On est tous là, on est [BLANK]',blank:'la famille',answer:'la famille'},
+  {mode:'artist',genre:'Rap FR 🇫🇷',q:'Qui chante "Freeze Raël" ?',answer:'RSKO',hint:'Marseille, freestyle culte sur Mouv, Nono La Grinta connection'},
+  {mode:'artist',genre:'Rap FR 🇫🇷',q:'Qui chante "Je te le jure" ?',answer:'Ninho',hint:'L\'un des rappeurs les plus streamés en France'},
+  // RAP US
+  {mode:'artist',genre:'Rap US 🇺🇸',q:'Qui chante "Not Like Us" ?',answer:'Kendrick Lamar',hint:'Diss massif contre Drake, sorti en mai 2024, a tout dominé'},
+  {mode:'lyric',genre:'Rap US 🇺🇸',song:"God's Plan — Drake",lyric:'She said do you love me, I tell her only [BLANK]',blank:'partly',answer:'partly'},
+  {mode:'artist',genre:'Rap US 🇺🇸',q:'Qui chante "FE!N" ?',answer:'Travis Scott',hint:'Album Utopia 2023, featuring Playboi Carti'},
+  {mode:'artist',genre:'Rap US 🇺🇸',q:'Qui chante "Snooze" ?',answer:'SZA',hint:'Album SOS sorti en 2023, a battu des records de streaming'},
+  {mode:'lyric',genre:'Rap US 🇺🇸',song:'HUMBLE — Kendrick Lamar',lyric:'Sit down, be [BLANK], hol\' up, bitch',blank:'humble',answer:'humble'},
+  {mode:'artist',genre:'Rap US 🇺🇸',q:'Qui chante "Rich Flex" ?',answer:'Drake & 21 Savage',hint:'Album Her Loss 2022, sample de Flex de Rich Homie Quan'},
+  {mode:'artist',genre:'Rap US 🇺🇸',q:'Qui chante "All Falls Down" ?',answer:'Kanye West',hint:'College Dropout 2004, l\'un de ses premiers grands tubes'},
+  // POP US
+  {mode:'artist',genre:'Pop US 🇺🇸',q:'Qui chante "Espresso" ?',answer:'Sabrina Carpenter',hint:'"That\'s that me espresso" — tube mondial été 2024'},
+  {mode:'artist',genre:'Pop US 🇺🇸',q:'Qui chante "Bad Guy" ?',answer:'Billie Eilish',hint:'Sœur et frère ensemble, chuchotements iconiques, 2019'},
+  {mode:'lyric',genre:'Pop US 🇺🇸',song:'Crazy in Love — Beyoncé',lyric:'Got me lookin so crazy right now, your love\'s [BLANK]',blank:'got me lookin so crazy',answer:'got me lookin so crazy'},
+  {mode:'artist',genre:'Pop US 🇺🇸',q:'Qui chante "Flowers" ?',answer:'Miley Cyrus',hint:'Sorti le jour d\'anniversaire de son ex Liam Hemsworth, 2023'},
+  {mode:'lyric',genre:'Pop US 🇺🇸',song:'Anti-Hero — Taylor Swift',lyric:'It\'s me, hi, I\'m the problem, [BLANK]',blank:'it\'s me',answer:'it\'s me'},
+  {mode:'artist',genre:'Pop US 🇺🇸',q:'Qui chante "Levitating" ?',answer:'Dua Lipa',hint:'Album Future Nostalgia 2020, son plus grand tube'},
+  // AFROBEAT
+  {mode:'artist',genre:'Afrobeat 🌍',q:'Qui chante "Essence" ?',answer:'WizKid ft Tems',hint:'"Normally I don\'t do this", Nigeria 2020, summer anthem'},
+  {mode:'artist',genre:'Afrobeat 🌍',q:'Qui chante "Last Last" ?',answer:'Burna Boy',hint:'Album Love Damini, Lagos 2022, breakup anthem culte'},
+  {mode:'lyric',genre:'Afrobeat 🌍',song:'Calm Down — Rema',lyric:'Baby calm down, calm down, I no go [BLANK]',blank:'hurt you',answer:'hurt you'},
+  {mode:'artist',genre:'Afrobeat 🌍',q:'Qui chante "Pana" ?',answer:'Tekno',hint:'Nigeria, afropop qui a explosé partout en Europe'},
+  {mode:'artist',genre:'Afrobeat 🌍',q:'Qui chante "Ye" ?',answer:'Burna Boy',hint:'Son titre le plus connu avant d\'exploser mondialement, mélodie inoubliable'},
+  {mode:'artist',genre:'Afrobeat 🌍',q:'Qui chante "Love Nwantiti" ?',answer:'CKay',hint:'Nigeria, 2019, viral sur TikTok 2021, remix partout'},
+  {mode:'artist',genre:'Afrobeat 🌍',q:'Qui chante "Sungba" ?',answer:'Asake ft Burna Boy',hint:'Nigeria 2022, Amapiano meets Afrobeats'}
+];
+QUIZ_ALL.sort(function(){ return Math.random()-.5; });
+// Track used quiz indices to prevent repeats
+var _quizUsed = [];
+function getNextQuiz() {
+  if (_quizUsed.length >= QUIZ_ALL.length) _quizUsed = [];
+  var available = QUIZ_ALL.filter(function(_,i){ return _quizUsed.indexOf(i)===-1; });
+  var pick = available[Math.floor(Math.random()*available.length)];
+  var idx = QUIZ_ALL.indexOf(pick);
+  _quizUsed.push(idx);
+  return pick;
+}
+
+var BT_ALL = [
+  // POWER
+  {type:'replique',q:'"Tout le monde va mourir un jour. Moi je choisis comment."',answer:'Power',hint:'Ghost — Starz, série culte du game'},
+  {type:'synopsis',q:'Un dealer de drogue new-yorkais mène une double vie entre son club de nuit et son empire criminel.',answer:'Power',hint:'50 Cent produit, Omari Hardwick joue'},
+  {type:'scene',q:'Ghost apprend que son meilleur ami Tommy est celui qui a trahi sa famille.',answer:'Power',hint:'La trahison la plus choquante de la série'},
+  // MURDER / HOW TO GET AWAY WITH MURDER
+  {type:'replique',q:'"Comment s\'en tirer avec un meurtre ? Premièrement, soyez malin."',answer:'How to Get Away with Murder',hint:'Annalise Keating, ABC, Shonda Rhimes'},
+  {type:'synopsis',q:'Une avocate redoutable entraîne ses étudiants dans une affaire criminelle qui dépasse tout ce qu\'ils imaginaient.',answer:'How to Get Away with Murder',hint:'Viola Davis dans le rôle principal'},
+  {type:'scene',q:'Les étudiants découvrent qu\'Annalise Keating les implique dans de vraies affaires de meurtre dès la première semaine.',answer:'How to Get Away with Murder',hint:'Le twist du premier épisode'},
+  // LUPIN
+  {type:'replique',q:'"Arsène Lupin n\'existe pas. Mais il peut exister."',answer:'Lupin',hint:'Omar Sy, Netflix France, 2021'},
+  {type:'synopsis',q:'Un homme utilise les techniques du gentleman cambrioleur Arsène Lupin pour se venger de la famille qui a détruit son père.',answer:'Lupin',hint:'Omar Sy dans le rôle d\'Assane Diop'},
+  {type:'scene',q:'Le héros vole un collier de Marie-Antoinette au Louvre déguisé en agent de nettoyage.',answer:'Lupin',hint:'La scène d\'ouverture iconique de l\'épisode 1'},
+  // THE BOYS
+  {type:'synopsis',q:'Des super-héros corrompus et arrogants font la loi, et un groupe de civils décide de les arrêter par tous les moyens.',answer:'The Boys',hint:'Amazon Prime, anti-héros, très violent et satirique'},
+  {type:'replique',q:'"On est pas des héros. On est juste des mecs qui font ce que personne d\'autre veut faire."',answer:'The Boys',hint:'Billy Butcher, Amazon Prime'},
+  {type:'scene',q:'Homelander fait fondre la tête d\'un homme avec ses yeux laser juste parce qu\'il peut.',answer:'The Boys',hint:'Le personnage le plus flippant de la série'},
+  // LOUP GAROU / WOLF PACK
+  {type:'synopsis',q:'Des lycéens survivent à un incendie de forêt et découvrent qu\'ils ont été transformés en créatures surnaturelles.',answer:'Wolf Pack',hint:'Sarah Michelle Gellar, Paramount+'},
+  // ALICE IN BORDERLAND
+  {type:'synopsis',q:'Un groupe de jeunes se retrouve piégé dans une version post-apocalyptique de Tokyo où ils doivent jouer à des jeux mortels.',answer:'Alice in Borderland',hint:'Netflix Japon, adapté du manga, saison 2 disponible'},
+  {type:'scene',q:'Les joueurs doivent traverser une salle où le sol devient une grille électrifiée — un seul peut survivre.',answer:'Alice in Borderland',hint:'Jeu de "Beach" saison 1'},
+  // YOU
+  {type:'replique',q:'"Je te surveille. Pas parce que je suis fou. Parce que je t\'aime."',answer:'You',hint:'Joe Goldberg, Penn Badgley, Netflix'},
+  {type:'synopsis',q:'Un libraire obsessionnel s\'invente une vie parfaite autour des femmes dont il tombe amoureux — en les stalquant.',answer:'You',hint:'Penn Badgley, adapté du roman de Caroline Kepnes'},
+  // TOP BOY
+  {type:'synopsis',q:'Deux dealers contrôlent les rues d\'une cité londonienne tout en luttant pour garder leur empire face aux rivaux.',answer:'Top Boy',hint:'Netflix, Londres, Drake a produit les nouvelles saisons'},
+  {type:'replique',q:'"Dans la rue, t\'es soit en haut, soit mort."',answer:'Top boy',hint:'Dushane, cités de Londres'},
+  // CASA DE PAPEL / LA CASA DE PAPEL
+  {type:'replique',q:'"Résistance."',answer:'La Casa de Papel',hint:'Netflix, Espagne — c\'est le mot de ralliement du gang'},
+  {type:'synopsis',q:'Un génie du crime organise le plus grand braquage de l\'histoire en prenant en otage la Monnaie nationale espagnole.',answer:'La Casa de Papel',hint:'Aka Money Heist, Netflix Espagne'},
+  {type:'scene',q:'Tout le gang entre dans la Monnaie en combinaison rouge et masque de Dalí en chantant "Bella Ciao".',answer:'La Casa de Papel',hint:'La scène iconique de l\'épisode 1'},
+  // UMBRELLA ACADEMY
+  {type:'synopsis',q:'Des enfants nés le même jour sans raison apparente ont des super-pouvoirs — leur père adoptif les a formés pour sauver le monde.',answer:'Umbrella Academy',hint:'Netflix, bande-son excellente, adapté du comics'},
+  {type:'scene',q:'La famille entière se retrouve à danser sur "I Think We\'re Alone Now" dans le salon, chacun dans sa bulle.',answer:'Umbrella Academy',hint:'La scène musicale du début de la série'},
+  // BMF (BLACK MAFIA FAMILY)
+  {type:'synopsis',q:'L\'histoire vraie de deux frères de Detroit qui ont construit l\'un des plus grands réseaux de trafic de drogue aux États-Unis dans les années 80.',answer:'BMF',hint:'Starz, basé sur des faits réels, 50 Cent produit aussi'},
+  {type:'scene',q:'Meech et Terry commencent à vendre depuis leur quartier de Detroit avec presque rien et rêvent de dominer le pays.',answer:'BMF — Black Mafia Family',hint:'Les débuts humble des frères Flenory'},
+  // BLOOD & WATER
+  {type:'synopsis',q:'Une lycéenne sud-africaine s\'infiltre dans une école d\'élite pour retrouver sa sœur disparue qui aurait été kidnappée à la naissance.',answer:'Blood & Water',hint:'Netflix Afrique du Sud, première série africaine très populaire'},
+  {type:'scene',q:'Puleng découvre que la star du lycée pourrait être sa sœur biologique kidnappée 17 ans plus tôt.',answer:'Blood & Water',hint:'Le twist qui lance toute l\'intrigue'}
+];
+BT_ALL.sort(function(){ return Math.random()-.5; });
+
+var SURVIVAL = [
+  {title:'🏝️ Île Déserte', scenes:[
+    {txt:'Votre avion vient de s\'écraser. Vous vous réveillez sur une île déserte. Il fait 38°C, vous êtes épuisés et blessés. Vous avez sur vous : <strong>un briquet, une corde et une gourde vide</strong>. Quelle est votre toute première priorité ?',ch:['Chercher de l\'eau potable dans la forêt','Construire un abri sur la plage','Faire du feu pour signaler votre présence','Explorer toute l\'île pour faire un état des lieux'],cor:0,good:'Excellente décision ! Sans eau, un être humain peut mourir en seulement 3 jours, encore moins sous une chaleur de 38°C. L\'eau est TOUJOURS la première priorité en survie.',bad:'Mauvais choix. Sans eau potable, vous n\'aurez même pas l\'énergie de faire les autres tâches sous cette chaleur. La déshydratation tue en 3 jours.',hp:[10,-20,-15,-25]},
+    {txt:'Vous avez trouvé un ruisseau dans la forêt. L\'eau est claire et semble propre. Mais vous n\'avez aucun moyen de savoir si elle contient des bactéries ou parasites invisibles. Vous êtes très assoiffés. Que faites-vous ?',ch:['Faire bouillir l\'eau grâce au briquet avant de boire','Boire directement — l\'eau est claire, ça devrait aller','Construire un filtre naturel avec pierres, sable et feuilles','Attendre que la pluie tombe pour avoir de l\'eau de pluie'],cor:0,good:'Parfait ! Faire bouillir l\'eau détruit 99% des bactéries, virus et parasites dangereux. C\'est la méthode la plus sûre et vous avez un briquet.',bad:'Risqué ! Une eau visuellement claire peut contenir des parasites microscopiques comme la Giardia ou la Leptospira. En 24h vous pouvez être trop malades pour survivre.',hp:[10,-25,-10,-20]},
+    {txt:'Vous avez de l\'eau. La nuit tombe rapidement et la température chute à 15°C. Il faut vous abriter. Vous avez toujours la corde et il y a plein de branches autour de vous. Que construisez-vous en priorité ?',ch:['Un tipi simple avec branches et corde','Vous vous allongez dans les feuilles mortes pour vous réchauffer','Vous creusez un trou dans le sol pour vous y blottir','Vous restez assis près du feu toute la nuit sans dormir'],cor:0,good:'Excellent choix ! Un tipi est la structure la plus rapide à construire avec des branches. Il protège du vent, retient la chaleur du corps et vous abrite de la pluie. Indispensable.',bad:'Pas idéal. Avec les matériaux disponibles (corde + branches), vous pouvez faire bien mieux qu\'une solution de fortune. L\'hypothermie peut tuer même à 15°C.',hp:[10,-15,-10,-15]},
+    {txt:'Jour 2. Vous avez faim. Sur la plage, vous trouvez des <strong>crabes, des noix de coco vertes, des baies rouges inconnues</strong> et un filet de pêche échoué. Que choisissez-vous de manger ?',ch:['Les crabes cuits au feu — sûrs et nutritifs','Les baies rouges — elles ont l\'air juteuses','Les noix de coco — eau et chair nutritive','Vous attendez d\'attraper du poisson avec le filet'],cor:0,good:'Très bon choix ! Les crustacés cuits au feu sont une source excellente de protéines et sont sûrs à consommer. Les crabes côtiers sont comestibles dans pratiquement tous les pays tropicaux.',bad:'Attention ! Les baies rouges inconnues peuvent être mortellement toxiques. Règle numéro 1 de la survie : ne jamais manger quelque chose qu\'on ne reconnaît pas avec certitude.',hp:[10,-30,-5,-5]},
+    {txt:'Jour 3. Vous avez repéré une source d\'eau douce, de la nourriture et un abri. Maintenant il faut être secouru. Vous avez : le feu allumé, la corde et des pierres. Comment signalez-vous votre présence au mieux ?',ch:['Mettre des feuilles vertes humides sur le feu pour faire une fumée épaisse et noire','Agiter la corde sur la plage en espérant que quelqu\'un vous voit','Crier aussi fort que possible vers l\'horizon','Faire un grand SOS avec des pierres sur la plage'],cor:0,good:'Parfait ! La fumée épaisse et colorée est visible à plusieurs kilomètres en journée. Le contraste entre fumée noire et ciel bleu attire immédiatement l\'œil des bateaux ou avions.',bad:'Pas assez visible à longue distance. La fumée reste le meilleur signal de détresse visible à la fois de jour et par mauvais temps.',hp:[10,-10,-10,-5]},
+    {txt:'Un bateau passe au loin. Vous avez réussi à signaler votre présence avec la fumée. Mais il ne ralentit pas encore. Vous avez 10 minutes avant qu\'il soit trop loin. Que faites-vous ?',ch:['Redoubler la fumée ET vous agitez sur la plage pour multiplier les signaux','Courir vers la mer pour nager vers le bateau','Allumer un deuxième feu plus près de l\'eau','Abandonner et attendre le prochain bateau'],cor:0,good:'Excellent ! Combiner plusieurs signaux en même temps augmente drastiquement les chances d\'être vu. Fumée + mouvement visible sur la plage = le bateau vous repère !',bad:'Trop risqué. Nager vers un bateau en mer ouverte est dangereux et le bateau peut ne pas vous voir dans l\'eau.',hp:[10,-20,-5,-15]}
+  ]},
+  {title:'🧟 Apocalypse Zombie', scenes:[
+    {txt:'Le virus zombie a tout envahi. Vous vous retrouvez dans un <strong>supermarché abandonné avec des provisions pour 5 jours</strong>. Soudain, vous entendez des bruits à l\'entrée principale — des grognements. Quelle est votre première réaction ?',ch:['Barricader silencieusement toutes les portes et issues avec des rayonnages','Fuir immédiatement par la sortie de secours à l\'arrière','Monter sur les rayons pour observer ce qui se passe','Allumer les lumières pour voir clairement ce que c\'est'],cor:0,good:'Bonne réaction ! Sécuriser votre périmètre en silence est la priorité. Chaque bruit attire plus de zombies. Les barricades vous donnent du temps pour évaluer la situation.',bad:'Trop risqué. Fuir sans savoir ce qui vous attend dehors peut vous mener droit dans un groupe de zombies. Allumer les lumières est une erreur fatale — ça attire tout le quartier.',hp:[10,-20,-10,-30]},
+    {txt:'Les portes sont barricadées. Vous êtes en sécurité pour l\'instant. Un survivant frappe et crie à l\'aide depuis dehors. Il saigne du bras. Vous ne savez pas s\'il est mordu. Que faites-vous ?',ch:['L\'observer depuis une fenêtre 10 minutes pour voir s\'il se transforme','L\'ignorer complètement — trop risqué','Le laisser entrer immédiatement sans condition — il souffre','L\'aider uniquement s\'il peut prouver qu\'il n\'est pas mordu'],cor:0,good:'Intelligent ! Observer sans risque vous permet d\'évaluer son état. S\'il était mordu, vous verriez des signes de transformation rapidement. Vous gardez le contrôle de la situation.',bad:'Erreur tactique. Ignorer ou laisser entrer sans vérification peut coûter la vie au groupe entier.',hp:[10,-5,-25,-5]},
+    {txt:'Le survivant est sain — c\'est une coupure de verre, pas une morsure. Il vous dit qu\'un camp sécurisé existe à 5 km. La nuit tombe dans 1 heure. Que décidez-vous ?',ch:['Attendre l\'aube — voyager de nuit avec des zombies est suicidaire','Partir immédiatement pendant qu\'il fait encore jour','Envoyer le survivant en éclaireur pour sécuriser le trajet','Rester définitivement dans le supermarché'],cor:0,good:'Sage décision ! La nuit appartient aux zombies. Leur ouïe s\'amplifie, ils vous entendent avant de vous voir. Attendre l\'aube divise par 10 les risques.',bad:'Les zombies sont nocturnes dans cet univers — leur activité double la nuit. Partir maintenant est une erreur tactique majeure.',hp:[10,-25,-15,-10]},
+    {txt:'Le lendemain matin. Vous traversez une rue quand soudain <strong>15 zombies surgissent</strong> d\'un immeuble. Vous avez une barre de métal, une bouteille vide et une ruelle à gauche. Pas assez de monde pour se battre. Que faites-vous ?',ch:['Jeter la bouteille très loin pour distraire les zombies et fuir silencieusement dans la ruelle','Courir droit devant en espérant les distancer','Foncer et se battre — c\'est la seule sortie','Rester immobiles et espérer qu\'ils ne vous voient pas'],cor:0,good:'Brillant ! La distraction avec la bouteille attire leur attention vers le bruit. Pendant qu\'ils convergent vers le son, vous fuyez silencieusement. Technique de survie classique.',bad:'15 zombies contre votre groupe avec une seule barre de métal — mathématiquement impossible. La fuite intelligente est la seule option.',hp:[10,-20,-30,-10]},
+    {txt:'Vous approchez du camp. Un garde en arme vous arrête et dit que <strong>tout le monde doit passer une fouille corporelle complète</strong> avant d\'entrer pour vérifier les morsures. L\'un de vous a une vieille cicatrice suspecte sur le bras. Que faites-vous ?',ch:['Dire la vérité — c\'est une ancienne cicatrice et vous expliquez d\'où elle vient','Cacher la cicatrice avec des bandages et espérer','Nier et être agressif avec le garde','Refuser la fouille et demander à entrer autrement'],cor:0,good:'La transparence paye ! Expliquer calmement l\'origine de la cicatrice avec des détails convaincants. Les gardes expérimentés savent reconnaître une ancienne blessure d\'une morsure fraîche.',bad:'Cacher ou nier ne fonctionne jamais. Les gardes sont formés pour détecter les mensonges et les comportements suspects. Ça empire tout.',hp:[10,-25,-30,-20]},
+    {txt:'Vous êtes dans le camp. Après 3 jours, vous réalisez que les réserves de nourriture fondent vite — il y a trop de personnes. Le chef du camp propose d\'organiser une sortie de ravitaillement risquée. Vous participez ?',ch:['Oui, vous proposez un plan d\'équipe structuré avec des rôles clairs','Oui, vous partez seuls sans prévenir pour aller plus vite','Non, vous restez au camp — trop dangereux','Vous sabotez discrètement le plan pour rester'],cor:0,good:'Parfaite approche ! Une opération de ravitaillement structurée avec des rôles définis (guetteur, collecteur, conducteur) maximise les chances de succès et minimise les pertes.',bad:'Partir seul ou refuser d\'aider met en danger toute la communauté. La survie collective nécessite la coopération.',hp:[10,-20,-10,-30]}
+  ]},
+  {title:'🚀 Station Spatiale en Crise', scenes:[
+    {txt:'Vous êtes astronautes à bord d\'une station spatiale à 400 km au-dessus de la Terre. Soudain une alarme retentit : <strong>un météorite vient de perforer la coque du module C</strong>. La pression chute dans ce module. Vous avez 3 minutes avant que l\'air s\'échappe complètement. Quelle est votre action immédiate ?',ch:['Fermer en urgence la porte étanche du module C pour isoler la brèche','Courir vers le sas et enfiler les combinaisons spatiales','Contacter immédiatement le centre de contrôle à Houston','Chercher le kit de réparation d\'urgence prévu pour ce cas'],cor:0,good:'Réaction parfaite ! Isoler le module percé en 3 minutes sauve le reste de la station et tout l\'équipage. C\'est la procédure d\'urgence internationale numéro 1 des astronautes.',bad:'Précieux temps perdu ! Sans isolation immédiate du module percé, la dépressurisation va s\'étendre à toute la station en quelques minutes.',hp:[10,-15,-20,-20]},
+    {txt:'Le module C est isolé. Mais il contenait <strong>70% de vos réserves d\'oxygène</strong>. Il vous reste 48 heures d\'O2 pour 4 personnes. La Terre est à 12 heures de communication. Quelle est votre priorité absolue ?',ch:['Fouiller méthodiquement tous les autres modules pour trouver les réserves de secours','Réduire toute activité physique pour consommer moins d\'oxygène','Envoyer immédiatement un signal de détresse en boucle','Tenter de réparer la brèche en sortie spatiale'],cor:0,good:'Excellente priorité ! Dans toute station, des réserves de secours sont dissimulées dans plusieurs modules pour exactement cette situation. Vous en trouvez 2 — gain de 72 heures !',bad:'Pas la bonne priorité. Réduire l\'activité aide un peu, mais trouver les réserves cachées est la solution réelle. Chaque minute compte.',hp:[10,-10,-5,-15]},
+    {txt:'Vous avez 36 heures d\'oxygène. Houston confirme : un vaisseau de secours arrive dans 30 heures. Mais le système de chauffage commence à défaillir. La température tombe à <strong>5°C</strong> et continue de baisser. Que faites-vous ?',ch:['Couper tous les systèmes non essentiels pour rediriger l\'énergie vers le chauffage','Mettre les combinaisons spatiales qui ont leur propre système thermique','Essayer de réparer le chauffage avec les outils à bord','Regrouper tout l\'équipage dans un seul module pour mutualiser la chaleur corporelle'],cor:0,good:'Génie ! En coupant les systèmes non essentiels (éclairages non critiques, expériences scientifiques), vous libérez assez d\'énergie pour maintenir 12°C. Vous survivez confortablement.',bad:'Solution temporaire. La combinaison ou le regroupement aide, mais la vraie solution est de retrouver de l\'énergie pour le chauffage.',hp:[10,-10,-10,-5]},
+    {txt:'10 heures avant le secours. Un membre de l\'équipage développe des <strong>maux de tête intenses, des nausées et une vision trouble</strong>. Ce sont des symptômes alarmants. Quelle est votre diagnose et votre action ?',ch:['Vérifier immédiatement les capteurs de CO2 — probable empoisonnement au dioxyde de carbone','Lui donner une partie de votre oxygène personnel','L\'allonger et le surveiller en attendant l\'arrivée du secours','Contacter Houston en urgence pour un diagnostic médical à distance'],cor:0,good:'Très bon réflexe médical ! Ces symptômes (maux de tête + nausées + vision trouble) correspondent exactement à un empoisonnement au CO2. Le capteur confirme — taux dangereux dans ce module. Vous changez de module, il récupère en 20 minutes.',bad:'Pas assez précis. Sans identifier la CAUSE, le traitement peut être inutile voire dangereux.',hp:[10,-15,-5,-10]},
+    {txt:'Le vaisseau de secours est à <strong>30 minutes</strong>. Il peut transporter tout l\'équipage d\'un coup mais il doit s\'amarrer — procédure délicate. Le pilote automatique demande une confirmation manuelle. Qui prend le contrôle ?',ch:['Votre pilote le plus expérimenté prend le contrôle manuel pour l\'amarrage','Vous laissez le pilote automatique gérer — il est plus précis','Tout le monde touche aux commandes pour "aider"','Vous attendez des instructions de Houston avant d\'agir'],cor:0,good:'Bonne décision de commandement ! Dans une situation critique à faible marge d\'erreur, le pilote humain expérimenté peut adapter en temps réel ce qu\'un algorithme ne peut pas anticiper.',bad:'Un amarrage d\'urgence à 7,6 km/s nécessite une décision humaine. Trop attendre ou trop de mains sur les commandes = catastrophe.',hp:[10,-5,-30,-15]},
+    {txt:'Amarrage réussi ! Vous êtes en sécurité dans le vaisseau de secours. Mais votre mission scientifique — 3 mois de données sur la croissance des cristaux dans l\'espace — est encore sur les serveurs de la station. La station va être abandonnée. Que faites-vous ?',ch:['Transférer rapidement les données via WiFi pendant les dernières minutes d\'amarrage','Retourner seul dans la station pour récupérer les données','Laisser les données — votre vie prime sur la science','Demander à Houston de récupérer les données à distance'],cor:0,good:'Parfaite priorité ! Un transfert WiFi rapide est faisable sans risque supplémentaire. Vous sauvez 3 mois de travail scientifique précieux SANS mettre votre vie en danger.',bad:'Retourner seul dans une station abandonnée est une prise de risque disproportionnée. Les données ont de la valeur, pas autant que votre vie.',hp:[10,-30,-5,-5]}
+  ]}
+];
+;
+
+var ESCAPE = [
+  {title:'🔐 La Bibliothèque', story:'Vous êtes enfermés dans une vieille bibliothèque. 5 énigmes pour trouver la combinaison !', enigmes:[
+    {q:'Je parle sans bouche et entends sans oreilles. Je vis avec le vent. Qui suis-je ?',ans:['écho','echo'],hint:'Criez dans une montagne...',exp:'Un écho ! Il répète tout ce qu\'on dit.'},
+    {q:'Plus je sèche, plus je suis mouillée. Qui suis-je ?',ans:['serviette','une serviette'],hint:'Après la douche...',exp:'Une serviette ! Plus elle sèche quelqu\'un, plus elle est mouillée.'},
+    {q:'Je suis au début de la fin, à la fin du temps, au début de l\'éternité. Qui suis-je ?',ans:['e','lettre e','la lettre e'],hint:'Ce n\'est pas un mot...',exp:'La lettre E ! fiN, tEmps, étErnitE — partout !'},
+    {q:'Un homme entre dans un bar, demande de l\'eau. Le barman sort un pistolet. L\'homme dit merci et repart. Pourquoi ?',ans:['hoquet','il avait le hoquet'],hint:'L\'eau n\'était pas vraiment ce qu\'il voulait...',exp:'Il avait le hoquet ! La peur du pistolet l\'a guéri.'},
+    {q:'Je peux voler sans ailes, pleurer sans yeux, courir sans jambes. Qui suis-je ?',ans:['nuage','un nuage'],hint:'Regardez le ciel...',exp:'Un nuage ! Il se déplace, produit de la pluie.'}
+  ]},
+  {title:'🚪 L\'Appartement Maudit', story:'5 énigmes pour sortir avant minuit. Chaque erreur = 1 vie en moins.', enigmes:[
+    {q:'Quelle chose devient plus grande quand on en enlève ?',ans:['trou','un trou','le trou'],hint:'Pensez à ce qu\'on creuse...',exp:'Un trou ! Plus on enlève de matière, plus il grandit.'},
+    {q:'Je commence la nuit et finis le matin. Je vis dans ta tête. Qui suis-je ?',ans:['rêve','un rêve','songe'],hint:'Quand vous dormez...',exp:'Un rêve !'},
+    {q:'Deux pères et deux fils vont à la pêche. 3 poissons, chacun rentre avec 1. Comment ?',ans:['trois','3','grand-père','ils sont trois'],hint:'Comptez bien les personnes...',exp:'Ils sont 3 : un grand-père, son fils, et son petit-fils.'},
+    {q:'Je suis toujours devant vous mais ne peut pas être vu. Qui suis-je ?',ans:['futur','l\'avenir','avenir'],hint:'C\'est temporel...',exp:'Le futur ! Toujours devant nous, jamais visible.'},
+    {q:'Plus je suis chaude, plus je suis froide. La vie ne peut pas exister sans moi.',ans:['eau','l\'eau'],hint:'Vous en buvez chaque jour...',exp:'L\'eau ! Liquide, solide, gazeuse.'}
+  ]},
+  {title:'🔬 Le Laboratoire', story:'Un compte à rebours ! 5 énigmes pour trouver le code.', enigmes:[
+    {q:'Un coq pond un œuf au sommet d\'un toit. De quel côté tombe l\'œuf ?',ans:['aucun','nulle part','les coqs ne pondent pas','coq'],hint:'Qui pond vraiment des œufs ?',exp:'Aucun côté ! Les coqs ne pondent pas 😄'},
+    {q:'Vous avez 3 pommes, vous m\'en prenez 2. Combien en avez-vous ?',ans:['2','deux'],hint:'La question est plus simple qu\'elle en a l\'air...',exp:'2 ! Vous en avez pris 2.'},
+    {q:'Je n\'ai ni fenêtres ni portes. Si on me casse, on mange ce qu\'il y a dedans. Qui suis-je ?',ans:['oeuf','œuf','un oeuf','un œuf'],hint:'Petit-déjeuner...',exp:'Un œuf !'},
+    {q:'Un avion s\'écrase à la frontière France/Espagne. Où enterre-t-on les survivants ?',ans:['nulle part','on ne les enterre pas','survivants'],hint:'Lisez bien...',exp:'On n\'enterre pas les survivants — ils sont vivants !'},
+    {q:'Pierre a 3 sœurs. Chaque sœur a 2 frères. Combien de frères en tout ?',ans:['2','deux'],hint:'Pierre est-il le seul frère ?',exp:'2 ! Pierre + un autre. Chaque sœur a bien 2 frères.'}
+  ]}
+];
+
+var TC_ALL = [
+  {name:'Villes de France',desc:'Nommez le max de villes françaises en 30 secondes !'},
+  {name:'Films avec DiCaprio',desc:'Citez tous les films de DiCaprio que vous connaissez !'},
+  {name:'Artistes français depuis 2010',desc:'Nommez le max de chanteurs/chanteuses français !'},
+  {name:'Pays d\'Afrique',desc:'Nommez le max de pays africains en 30 secondes !'},
+  {name:'Marques de luxe',desc:'Nommez le max de marques de luxe !'},
+  {name:'Prénoms en M',desc:'Nommez le max de prénoms commençant par M !'},
+  {name:'Animaux en A',desc:'Nommez le max d\'animaux commençant par A !'},
+  {name:'Capitales européennes',desc:'Nommez le max de capitales européennes !'},
+  {name:'Séries populaires',desc:'Nommez le max de séries connues !'},
+  {name:'Marques de voitures',desc:'Nommez le max de marques de voitures !'}
+];
+TC_ALL.sort(function(){ return Math.random()-.5; });
+
+var DLM_ALL = ['Éléphant','Trampoline','Bibliothèque','Astronaute','Hippopotame','Volcan','Parachute','Crocodile','Ambulance','Détective','Kaléidoscope','Boulangerie','Télescope','Désert','Magicien','Aquarium','Boomerang','Cascadeur','Manchot','Kayak'];
+DLM_ALL.sort(function(){ return Math.random()-.5; });
+
+var BAC_CATS = ['Prénom','Pays','Animal','Marque','Film','Série','Plat','Sport','Métier','Ville','Chanteur','Marque de vêtements'];
+var BAC_LETS = 'BCDFGHJKLMNPRST'.split('');
+
+var OSC_ALL = [
+  'Si on était dans un film ensemble, on serait...',
+  'Notre superpower de duo serait...',
+  'Si on ouvrait un business ensemble, on vendrait...',
+  'Notre chanson officielle serait...',
+  'Si on voyageait ensemble, la destination serait...',
+  'Si on était des animaux, on serait...',
+  'Notre plus grande qualité en équipe c\'est...',
+  'Dans 10 ans, on se retrouve à...',
+  'Si on gagnait au loto, le premier truc qu\'on ferait c\'est...',
+  'Si on avait une émission de télé, elle s\'appellerait...'
+];
+OSC_ALL.sort(function(){ return Math.random()-.5; });
+
+var VOD_ALL = [
+  {t:'verite',txt:'Quel est le truc que tu n\'as jamais dit mais que tu aurais voulu dire ?'},
+  {t:'verite',txt:'Ta vision de la vie parfaite dans 5 ans — décris en 3 phrases.'},
+  {t:'verite',txt:'Si tu étais une star, quel serait ton style musical et ton nom de scène ?'},
+  {t:'verite',txt:'Ton ambition la plus folle que tu gardes encore secrète ?'},
+  {t:'verite',txt:'Ton plus grand regret jusqu\'ici — sois honnête.'},
+  {t:'verite',txt:'La personne qui t\'a le plus influencé dans ta vie ?'},
+  {t:'verite',txt:'Qu\'est-ce qui te rend vraiment heureux/heureuse sans avoir à l\'expliquer ?'},
+  {t:'defi',txt:'Faire une danse de 30 secondes sur une chanson choisie par l\'autre 💃'},
+  {t:'defi',txt:'Parler avec un accent étranger jusqu\'à la prochaine carte'},
+  {t:'defi',txt:'Imiter l\'autre pendant 2 minutes — voix, gestes, expressions !'},
+  {t:'defi',txt:'Faire le robot ou une chorée ridicule pendant 30 secondes 🤖'},
+  {t:'defi',txt:'Répondre aux 2 prochaines questions en chantant 🎤'},
+  {t:'defi',txt:'Bisou sur la partie du corps que t\'aimes le plus chez l\'autre 😏'},
+  {t:'defi',txt:'Raconter un souvenir gênant sans sauter aucun détail'},
+  {t:'defi',txt:'Garder une expression ultra sérieuse pendant 1 minute entière'}
+];
+VOD_ALL.sort(function(){ return Math.random()-.5; });
+
+var LOGIC_ALL = [
+  // FACILE — Pièges classiques
+  {diff:'facile',q:'5 machines fabriquent 5 objets en 5 minutes. Combien de temps faut-il à 100 machines pour fabriquer 100 objets ?',opts:['5 minutes','100 minutes','50 minutes','20 minutes'],cor:0,exp:'La réponse est 5 minutes. Chaque machine fabrique 1 objet en 5 minutes, peu importe combien il y en a. 100 machines font donc 100 objets en... 5 minutes !',pts:2},
+  {diff:'facile',q:'Un coq est au sommet d\'un toit. Il pond un œuf. De quel côté l\'œuf va-t-il rouler et tomber ?',opts:['Il tombe à droite','Il tombe à gauche','Il ne tombe pas','Les coqs ne pondent pas !'],cor:3,exp:'Les coqs sont des mâles — ce sont les poules qui pondent des œufs ! Donc il n\'y a aucun œuf. La question est un piège.',pts:2},
+  {diff:'facile',q:'Tu as 3 pommes. Tu m\'en prends 2. Combien de pommes est-ce que TU as maintenant ?',opts:['1 pomme','2 pommes','3 pommes','0 pomme'],cor:1,exp:'Tu en as 2 ! La question demande combien TU en as, pas combien il en reste dans le panier. Tu as pris 2 pommes, donc tu en as 2.',pts:2},
+  {diff:'facile',q:'Un avion s\'écrase exactement à la frontière entre la France et l\'Espagne. Dans quel pays enterre-t-on les survivants ?',opts:['En France','En Espagne','À mi-chemin des deux','On n\'enterre pas les survivants !'],cor:3,exp:'On n\'enterre pas les survivants — ils sont encore en vie ! Le mot "survivants" signifie "ceux qui ont survécu", donc ils ne sont pas morts.',pts:2},
+  {diff:'facile',q:'Si tu mets un habit à sécher dehors et qu\'il sèche en 1 heure, combien de temps faut-il pour sécher 5 habits en même temps ?',opts:['5 heures','2h30','1 heure','Ça dépend de la météo'],cor:2,exp:'Toujours 1 heure ! Si tu les mets tous dehors en même temps, le soleil et le vent sèchent les 5 en parallèle. Ce n\'est pas comme si tu les mettais l\'un après l\'autre.',pts:2},
+  // MOYEN — Logique et réflexion
+  {diff:'moyen',q:'Deux pères et deux fils partent à la pêche. Ils attrapent exactement 3 poissons, et chacun d\'eux rentre chez lui avec 1 poisson entier. Comment est-ce possible ?',opts:['L\'un d\'eux a triché','Un poisson a été coupé en deux','Il y a seulement 3 personnes en tout','C\'est impossible'],cor:2,exp:'Il n\'y a que 3 personnes : un grand-père, son fils, et le fils de ce dernier. Le fils est à la fois "père" (du petit-fils) et "fils" (du grand-père). Donc 2 pères + 2 fils = 3 personnes seulement !',pts:3},
+  {diff:'moyen',q:'Pierre a 3 sœurs. Chaque sœur a exactement 2 frères. Combien y a-t-il de frères en tout dans cette famille ?',opts:['6 frères','4 frères','2 frères','3 frères'],cor:2,exp:'Il y a seulement 2 frères ! Pierre est l\'un des frères. Comme chaque sœur a exactement 2 frères, et que Pierre en est un, il y a forcément un deuxième frère. Pas besoin d\'en inventer d\'autres.',pts:3},
+  {diff:'moyen',q:'Marie a 4 filles. Chaque fille a exactement 1 frère. Combien d\'enfants Marie a-t-elle en tout ?',opts:['8 enfants','5 enfants','4 enfants','6 enfants'],cor:1,exp:'Elle a 5 enfants : 4 filles et 1 seul garçon. Puisque chaque fille a "1 frère", c\'est le même frère partagé par toutes. Donc 4 + 1 = 5, pas 4 x 2 = 8 !',pts:3},
+  {diff:'moyen',q:'Un homme habite au 20ème étage. Chaque matin, il prend l\'ascenseur jusqu\'au rez-de-chaussée. Le soir, il monte en ascenseur jusqu\'au 10ème étage, puis il monte les escaliers jusqu\'au 20ème. Pourquoi ?',opts:['Il aime faire du sport le soir','L\'ascenseur tombe en panne chaque soir','Il est trop petit pour appuyer sur le bouton 20','Le 20ème bouton est cassé'],cor:2,exp:'Il est trop petit pour atteindre le bouton du 20ème étage ! Le matin, il peut appuyer sur "RDC" qui est en bas. Mais le soir, il ne peut atteindre que jusqu\'au bouton 10. Donc il monte à pied pour les 10 étages restants.',pts:3},
+  {diff:'moyen',q:'Tu participes à une course. Tu doubles la personne en 2ème position. Quelle est maintenant ta position dans la course ?',opts:['1ère place','2ème place','3ème place','Ça dépend de la course'],cor:1,exp:'Tu es maintenant 2ème ! Quand tu doubles quelqu\'un, tu prends SA place. Tu as pris la place du 2ème — donc tu es 2ème. Pour être 1er, il faudrait doubler le 1er !',pts:3},
+  {diff:'moyen',q:'Un fermier a 17 moutons. Tous sauf 9 meurent d\'une maladie. Combien lui reste-t-il de moutons vivants ?',opts:['8 moutons','9 moutons','17 moutons','Aucun'],cor:1,exp:'"Tous sauf 9 meurent" veut dire exactement que 9 moutons survivent. Le piège est de faire 17 - 9 = 8, mais la phrase dit clairement que 9 restent en vie.',pts:3},
+  {diff:'moyen',q:'Une bougie fait 30 cm. Elle brûle complètement en 3 heures. Combien de temps faut-il pour brûler une bougie identique de 60 cm ?',opts:['3 heures','6 heures','1h30','9 heures'],cor:1,exp:'6 heures ! Si une bougie de 30 cm brûle en 3 heures, une bougie deux fois plus grande (60 cm) brûlera deux fois plus longtemps : 3 x 2 = 6 heures.',pts:3},
+  // DIFFICILE — Casse-têtes et pièges mentaux
+  {diff:'difficile',q:'Un homme regarde une photo et dit : "Je n\'ai ni frère ni sœur, mais le père de cet homme est le fils de mon père." De qui est-ce que l\'homme regarde la photo ?',opts:['Son propre fils','Lui-même','Son père','Son neveu'],cor:0,exp:'"Le fils de mon père" = moi. Donc "le père de cet homme est moi." Donc cet homme est MON FILS. L\'homme regarde la photo de son fils !',pts:4},
+  {diff:'difficile',q:'Il y a 3 interrupteurs dehors et 3 ampoules dans une pièce fermée. Tu peux allumer/éteindre les interrupteurs autant de fois que tu veux, mais tu ne peux entrer dans la pièce QU\'UNE SEULE FOIS. Comment savoir quel interrupteur correspond à quelle ampoule ?',opts:['C\'est impossible en une seule visite','Allume le 1er 10 min, éteins-le, allume le 2ème, entre et touche les ampoules','Mets un miroir sous la porte','Il faut un ami dedans'],cor:1,exp:'Allume l\'interrupteur 1 pendant 10 minutes, puis éteins-le. Allume l\'interrupteur 2. Entre dans la pièce : l\'ampoule allumée = interrupteur 2. L\'ampoule éteinte mais CHAUDE = interrupteur 1. L\'ampoule froide et éteinte = interrupteur 3 !',pts:4},
+  {diff:'difficile',q:'Un snail (escargot) est au fond d\'un puits de 10 mètres. Chaque jour il monte 3 mètres, mais chaque nuit il redescend de 2 mètres. Combien de jours lui faut-il pour sortir du puits ?',opts:['10 jours','8 jours','7 jours','5 jours'],cor:1,exp:'8 jours ! Chaque jour, il monte net 1 mètre (3-2). Après 7 jours, il est à 7 mètres. Le 8ème jour, il monte 3 mètres et atteint 10 mètres — il sort ! Il n\'a pas besoin de redescendre cette nuit-là car il est déjà sorti.',pts:4},
+  {diff:'difficile',q:'Tu es dans une pièce avec 3 portes. Derrière la 1ère : un lion affamé. Derrière la 2ème : un assassin armé. Derrière la 3ème : un incendie mortel. Laquelle choisis-tu ?',opts:['La 1ère porte — fuir le lion','La 2ème porte — désarmer l\'assassin','La 3ème porte — l\'incendie s\'éteint','Aucune — reste dans la pièce'],cor:2,exp:'La 3ème porte ! Un incendie finit par s\'éteindre faute de combustible. Un lion affamé te mangera. Un assassin armé te tuera. L\'incendie est la seule option dont tu peux attendre qu\'elle se résolve.',pts:4},
+  {diff:'difficile',q:'Tu as deux cordes. Chacune brûle complètement en exactement 1 heure, mais de façon irrégulière. Comment mesures-tu exactement 45 minutes avec ces deux cordes et une allumette ?',opts:['C\'est impossible','Brûle la 1ère des deux côtés, allume la 2ème quand la 1ère est finie','Coupe les cordes en morceaux','Brûle une seule corde'],cor:1,exp:'Allume la 1ère corde des DEUX bouts en même temps, et allume la 2ème d\'un seul bout. La 1ère finira en 30 min (brûle 2x plus vite). Dès qu\'elle est éteinte, allume l\'autre bout de la 2ème corde. Elle finira 15 min plus tard. Total : 30 + 15 = 45 minutes !',pts:4},
+  {diff:'difficile',q:'Un prisonnier doit choisir entre 3 salles. La 1ère est remplie de feu. La 2ème contient des assassins armés jusqu\'aux dents. La 3ème est remplie de lions qui n\'ont pas mangé depuis 3 ans. Laquelle est la plus sûre ?',opts:['La 1ère — le feu peut s\'éteindre','La 2ème — peut négocier','La 3ème — les lions sont morts de faim !','Aucune des trois'],cor:2,exp:'La 3ème salle ! Des lions qui n\'ont pas mangé depuis 3 ans... sont morts. Aucun lion ne peut survivre 3 ans sans nourriture. La pièce est donc vide de lions vivants !',pts:4},
+  {diff:'difficile',q:'Si tu as une pièce de monnaie dans chaque main et que tu changes les pièces de main 3 fois de suite, dans quelle main est la pièce qui était dans ta main gauche au départ ?',opts:['Main gauche','Main droite','Impossible à savoir','Les deux mains à la fois'],cor:1,exp:'Après 1 échange → main droite. Après 2 échanges → main gauche. Après 3 échanges → main droite. Un nombre impair d\'échanges = la pièce est dans la main OPPOSÉE à son départ.',pts:4},
+  {diff:'moyen',q:'Il est 3h00 de l\'après-midi. L\'heure dans un miroir serait quelle heure ?',opts:['21h00','15h00','9h00','12h00'],cor:2,exp:'Dans un miroir, l\'heure apparaît inversée horizontalement. 3h00 (15:00) vu dans un miroir ressemble à 9h00. Les aiguilles sont inversées comme si on lisait une horloge dans le sens inverse.',pts:3},
+  {diff:'facile',q:'Un taxi peut transporter 4 passagers par voyage. Combien de voyages minimum faut-il pour transporter 13 passagers ?',opts:['3 voyages','4 voyages','13 voyages','Il reste dans le taxi'],cor:1,exp:'4 voyages sont nécessaires ! 1er voyage : 4 passagers. 2ème : 4 passagers. 3ème : 4 passagers. Total : 12 passagers. Il reste 1 passager — il faut un 4ème voyage. 4 x 4 = 16 places, mais on ne fait que 4 voyages.',pts:2}
+];
+LOGIC_ALL.sort(function(){ return Math.random()-.5; });
+
+var TMK_ALL = [
+  'Quel est le truc que tu n\'as jamais dit à quelqu\'un mais que tu aurais voulu dire ?',
+  'Ta vision de la vie parfaite dans 5 ans — décris en 3 phrases.',
+  'Si tu étais une star, quel serait ton style musical et ton nom de scène ?',
+  'Ton ambition la plus folle que tu gardes encore secrète ?',
+  'Quel est ton plus grand rêve que tu n\'oses pas dire à voix haute ?',
+  'Si tu pouvais changer une seule chose dans ta vie maintenant ?',
+  'Qu\'est-ce qui te rend vraiment heureux/heureuse sans avoir besoin de l\'expliquer ?',
+  'Si t\'avais une journée carte blanche, tu ferais quoi exactement ?',
+  'La chose qui te fait le plus peur dans l\'avenir ?',
+  'Ton souvenir le plus précieux — le premier qui te vient ?',
+  'Si tu pouvais vivre dans un autre pays, lequel et pourquoi ?',
+  'La qualité que tu admires le plus chez l\'autre ?',
+  'Ton plus grand défaut que tu reconnais sans hésiter ?',
+  'Si tu devais décrire ta personnalité en 3 mots ?',
+  'Le moment de ta vie où tu t\'es senti le plus fier/fière ?'
+];
+TMK_ALL.sort(function(){ return Math.random()-.5; });
+
+// ══════════════════════════
+// GAME RENDERERS
+// ══════════════════════════
+function rQuiz() {
+  var q = getNextQuiz();
+  var qHTML;
+  if (q.mode === 'lyric') {
+    var parts = q.lyric.split('[BLANK]');
+    qHTML = '<div class="qbox"><div class="qbadge" style="background:rgba(255,159,10,.15);color:#FF9F0A">'+q.genre+' — '+q.song+'</div><div class="lyric">'+parts[0]+'<span class="lbl">_ _ _ _</span>'+(parts[1]||'')+'</div><div class="qhint" style="margin-top:6px">Complétez la parole</div></div>';
+  } else {
+    qHTML = '<div class="qbox"><div class="qbadge" style="background:rgba(255,159,10,.15);color:#FF9F0A">🎤 DEVINER L\'ARTISTE — '+q.genre+'</div><div class="qtxt">'+q.q+'</div><div class="qhint">Indice : '+q.hint+'</div></div>';
+  }
+  S.passeFn = function() {
+    var _rb=document.getElementById('revbox'); if(_rb) _rb.classList.add('show');
+    var _ra=document.getElementById('revanswer'); if(_ra) _ra.textContent='⏭️ Passé ! -2pts — Réponse : '+q.answer;
+    showNxt();
+  };
+  setTimeout(function() {
+    startTmr(120, function() {
+      penalize();
+      var _rb=document.getElementById('revbox'); if(_rb) _rb.classList.add('show');
+      var _ra=document.getElementById('revanswer'); if(_ra) _ra.textContent='⏰ Temps ! -2pts — Réponse : '+q.answer;
+      showNxt();
+    });
+  }, 100);
+  return qHTML + timerHTML() +
+    buzzCards() +
+    '<div class="revbox" id="revbox"><div class="revanswer" id="revanswer"></div><div class="revsub">Qui avait la bonne réponse ?</div></div>' +
+    ptBtns() +
+    '<button class="nxtbtn" id="nxtbtn" onclick="S.quizI++;S.buzzed=false;renderGame(\'quiz-musical\')">Question suivante →</button>' +
+    '<button class="endbtn" onclick="endGame()">Terminer ✓</button>';
+}
+
+function rBT() {
+  var q = BT_ALL[S.btI % BT_ALL.length];
+  var tls = {replique:{l:'💬 RÉPLIQUE',c:'rgba(90,200,250,.15)',tc:'#5AC8FA'},scene:{l:'🎥 SCÈNE',c:'rgba(191,90,242,.15)',tc:'#BF5AF2'},synopsis:{l:'📖 SYNOPSIS',c:'rgba(255,159,10,.15)',tc:'#FF9F0A'}};
+  var tl = tls[q.type];
+  S.passeFn = function() {
+    var _rb=document.getElementById('revbox'); if(_rb) _rb.classList.add('show');
+    var _ra=document.getElementById('revanswer'); if(_ra) _ra.textContent='⏭️ -2pts — Réponse : '+q.answer;
+    showNxt();
+  };
+  setTimeout(function() {
+    startTmr(TOTAL_SECS, function() {
+      penalize();
+      var _rb=document.getElementById('revbox'); if(_rb) _rb.classList.add('show');
+      var _ra=document.getElementById('revanswer'); if(_ra) _ra.textContent='⏰ Temps ! -2pts — Réponse : '+q.answer;
+      showNxt();
+    });
+  }, 100);
+  return '<div class="qbox"><div class="qbadge" style="background:'+tl.c+';color:'+tl.tc+'">'+tl.l+'</div><div class="qtxt" style="font-style:italic;color:#FFD60A">"'+q.q+'"</div><div class="qhint">'+q.hint+'</div></div>' +
+    timerHTML() + buzzCards() +
+    '<div class="revbox" id="revbox"><div class="revanswer" id="revanswer"></div><div class="revsub">Qui avait raison ?</div></div>' +
+    ptBtns() +
+    '<button class="nxtbtn" id="nxtbtn" onclick="S.btI++;S.buzzed=false;renderGame(\'blind-test\')">Indice suivant →</button>' +
+    '<button class="endbtn" onclick="endGame()">Terminer ✓</button>';
+}
+
+function rSurvival() {
+  var scn = SURVIVAL[S.survScnIdx % SURVIVAL.length];
+  if (S.survScIdx >= scn.scenes.length) {
+    var pts = S.survHp>=90?4:S.survHp>=60?3:S.survHp>=40?2:S.survHp>=1?1:0;
+    addPts(1,pts); addPts(2,pts); sndWin();
+    var emoji = S.survHp>=90?'🎉':S.survHp>=60?'😊':S.survHp>=40?'😅':'😰';
+    return '<div class="blscene"><div class="bllbl">RÉSULTAT</div><div class="bltxt">'+emoji+' Terminé avec <strong>'+S.survHp+'% de vie</strong>.<br><strong>+'+pts+' point'+(pts>1?'s':'')+' chacun !</strong></div></div>' +
+      '<button class="btn btn-p w100" onclick="S.survScnIdx++;S.survScIdx=0;S.survHp=100;renderGame(\'survival\')">Scénario suivant →</button>' +
+      '<button class="endbtn" onclick="endGame()">Terminer ✓</button>';
+  }
+  var s = scn.scenes[S.survScIdx];
+  // Start 2-minute timer for this scene
+  if(S.tmrInt){clearInterval(S.tmrInt);S.tmrInt=null;}
+  S.tmrInt = setInterval(function(){
+    var el=document.getElementById('surv-timer');
+    if(!el){clearInterval(S.tmrInt);S.tmrInt=null;return;}
+    var secs=parseInt(el.getAttribute('data-secs')||'120')-1;
+    el.setAttribute('data-secs',secs);
+    var m=Math.floor(secs/60),s=secs%60;
+    el.textContent=m+':'+(s<10?'0':'')+s;
+    el.style.color=secs>30?'#fff':secs>10?'#FF9F0A':'#FF3B30';
+    if(secs<=0){
+      clearInterval(S.tmrInt);S.tmrInt=null;
+      // Force wrong answer penalty but show correct
+      document.querySelectorAll('#blchoices .blch').forEach(function(b,i){
+        b.disabled=true;
+        if(i===scn.scenes[S.survScIdx].cor)b.classList.add('cg');
+        else b.classList.add('cdis');
+      });
+      var hpChange=-20;
+      S.survHp=Math.max(0,Math.min(100,S.survHp+hpChange));
+      var hf=document.getElementById('hpfill');if(hf){hf.style.width=S.survHp+'%';hf.style.background=S.survHp>60?'#34C759':S.survHp>30?'#FF9F0A':'#FF3B30';}
+      var hv=document.getElementById('hpval');if(hv)hv.textContent=S.survHp+'%';
+      var out=document.getElementById('blout');
+      if(out){out.innerHTML='⏰ <strong>Temps écoulé !</strong> -20% de vie 💔 La bonne réponse était en surbrillance.';out.classList.add('show');}
+      var _nb=document.getElementById('nxtbtn'); if(_nb) _nb.classList.add('show');
+    }
+  },1000);
+  return '<div class="blscene"><div class="bllbl">'+scn.title+' — Scène '+(S.survScIdx+1)+'/'+scn.scenes.length+'</div>' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">' +
+      '<div style="display:flex;align-items:center;gap:8px;flex:1"><span>❤️</span><div class="hpbar"><div id="hpfill" class="hpfill" style="width:'+S.survHp+'%;background:'+(S.survHp>60?'#34C759':S.survHp>30?'#FF9F0A':'#FF3B30')+'"></div></div><span style="font-size:12px;font-weight:800;width:35px" id="hpval">'+S.survHp+'%</span></div>' +
+      '<div style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;color:#fff;margin-left:12px" id="surv-timer" data-secs="120">2:00</div>' +
+    '</div>' +
+    '<div class="bltxt">'+s.txt+'</div></div>' +
+    '<div class="blchoices" id="blchoices">'+s.ch.map(function(c,i){ return '<button class="blch" onclick="survPick('+i+')"><div class="blcl">'+String.fromCharCode(65+i)+'</div>'+c+'</button>'; }).join('')+'</div>' +
+    '<div class="blout" id="blout"></div>' +
+    '<button class="nxtbtn" id="nxtbtn" onclick="S.survScIdx++;renderGame(\'survival\')">Scène suivante →</button>' +
+    '<button class="endbtn" onclick="endGame()">Terminer ✓</button>';
+}
+function survPick(idx) {
+  fbPushGame('survival', { answered: true, pickedIdx: idx });
+  // Stop the 2-minute scene timer
+  if(S.tmrInt){clearInterval(S.tmrInt);S.tmrInt=null;}
+  var s = SURVIVAL[S.survScnIdx % SURVIVAL.length].scenes[S.survScIdx];
+  var ok = idx === s.cor;
+  document.querySelectorAll('#blchoices .blch').forEach(function(b,i) {
+    b.disabled = true;
+    if (i===idx) b.classList.add(ok?'cg':'cb');
+    else if (i===s.cor && !ok) b.classList.add('cg');
+    else b.classList.add('cdis');
+  });
+  var hpChange = idx===s.cor ? 10 : s.hp[idx]; S.survHp = Math.max(0, Math.min(100, S.survHp + hpChange));
+  var hf = document.getElementById('hpfill');
+  if (hf) { hf.style.width = S.survHp+'%'; hf.style.background = S.survHp>60?'#34C759':S.survHp>30?'#FF9F0A':'#FF3B30'; }
+  var hv = document.getElementById('hpval'); if (hv) hv.textContent = S.survHp+'%';
+  var out = document.getElementById('blout');
+  if (!out) { if(ok) sndOK(); else sndBad(); showNxt(); return; }
+  out.innerHTML = (ok?'✅ ':'❌ ') + (ok?s.good:s.bad) + ' <strong style="color:'+(s.hp[idx]<0?'#FF3B30':'#34C759')+'">('+( s.hp[idx]>0?'+':'')+s.hp[idx]+'% vie)</strong>';
+  out.classList.add('show');
+  var _nb=document.getElementById('nxtbtn'); if(_nb) _nb.classList.add('show');
+  if (ok) sndOK(); else sndBad();
+}
+
+function rEscape() {
+  var scn = ESCAPE[S.escScnIdx % ESCAPE.length];
+  if (S.escEnIdx >= scn.enigmes.length) {
+    var pts = S.escHp + 1; addPts(1,pts); addPts(2,pts); sndWin();
+    return '<div class="blscene"><div class="bllbl">🎉 ESCAPE RÉUSSIE !</div><div class="bltxt">Bravo ! <strong>'+S.escHp+'/3 vies</strong> restantes.<br><strong>+'+pts+' points chacun !</strong></div></div>' +
+      '<button class="endbtn" onclick="endGame()">Terminer ✓</button>';
+  }
+  var e = scn.enigmes[S.escEnIdx];
+  var hearts = '❤️'.repeat(S.escHp) + '🖤'.repeat(3-S.escHp);
+  S.passeFn = function() {
+    var fb = document.getElementById('escfb');
+    fb.className = 'fbbox fbto show';
+    fb.innerHTML = '⏭️ <strong>Passé ! -2pts</strong> — Réponse : <strong>'+e.ans[0]+'</strong>';
+    {var _e=document.getElementById('escinp'); if(_e) _e.disabled=true;}
+    showNxt();
+  };
+  setTimeout(function() {
+    startTmr(TOTAL_SECS, function() {
+      penalize();
+      var fb = document.getElementById('escfb');
+      fb.className = 'fbbox fbto show';
+      fb.innerHTML = '⏰ <strong>Temps ! -2pts</strong> — Réponse : <strong>'+e.ans[0]+'</strong>';
+      {var _e=document.getElementById('escinp'); if(_e) _e.disabled=true;}
+      showNxt();
+    });
+  }, 100);
+  return '<div class="blscene"><div class="bllbl">'+scn.title+' — Énigme '+(S.escEnIdx+1)+'/'+scn.enigmes.length+'</div>' +
+    '<div style="font-size:18px;text-align:center;margin:4px 0">'+hearts+'</div>' +
+    '<div class="bltxt" style="margin-top:10px;font-style:italic;color:#5AC8FA">"'+e.q+'"</div></div>' +
+    '<div style="font-size:11px;color:rgba(255,255,255,.35);text-align:center">💡 '+e.hint+'</div>' +
+    timerHTML() +
+    '<div style="display:flex;gap:8px"><input class="inp" id="escinp" placeholder="Votre réponse..." style="flex:1" onkeydown="if(event.key===\'Enter\')checkEsc()"><button class="btn btn-p btn-sm" onclick="checkEsc()">Valider</button></div>' +
+    '<div class="fbbox" id="escfb"></div>' +
+    '<button class="nxtbtn" id="nxtbtn" onclick="S.escEnIdx++;S.escHp=3;renderGame(\'escape-room\')">Énigme suivante →</button>' +
+    '<button class="endbtn" onclick="endGame()">Terminer ✓</button>';
+}
+function checkEsc() {
+  var inp = document.getElementById('escinp'); if (!inp || inp.disabled) return;
+  var v = inp.value.toLowerCase().trim();
+  var e = ESCAPE[S.escScnIdx % ESCAPE.length].enigmes[S.escEnIdx];
+  var ok = e.ans.some(function(a){ return v.indexOf(a.toLowerCase()) !== -1; });
+  var fb = document.getElementById('escfb');
+  if (ok) {
+    stopTmr(); fb.className = 'fbbox fbok show'; fb.innerHTML = '✅ <strong>Correct !</strong> '+e.exp;
+    inp.disabled=true; addPts(1,2); addPts(2,2); sndOK();
+    var _gp=document.getElementById('gt-pass'); if(_gp) _gp.disabled=true; showNxt();
+  } else {
+    S.escHp = Math.max(0, S.escHp-1);
+    fb.className = 'fbbox fbko show';
+    fb.innerHTML = S.escHp>0 ? '❌ Réessayez ! '+S.escHp+' vie'+(S.escHp>1?'s':'')+' restante'+(S.escHp>1?'s':'') : '❌ Plus de vies ! Réponse : <strong>'+e.ans[0]+'</strong>';
+    sndBad();
+    if (S.escHp <= 0) { stopTmr(); inp.disabled=true; penalize(); var _gp=document.getElementById('gt-pass'); if(_gp) _gp.disabled=true; showNxt(); }
+  }
+}
+
+function rTC() {
+  var ch = TC_ALL[S.tcI % TC_ALL.length];
+  var tcTurn = 1; // which player's turn
+  var tcScores = {1:0, 2:0}; // scores for this game
+  var tcRunning = false;
+  var tcSecs = 30;
+  var tcTmrLocal = null;
+  
+  S.passeFn = null;
+  
+  setTimeout(function(){
+    window._startTC = function(p) {
+      if (tcRunning) return;
+      tcTurn = p; tcRunning = true; tcSecs = 30;
+      {var _e=document.getElementById('tc-controls'); if(_e) _e.style.display='none';}
+      {var _e=document.getElementById('tc-running'); if(_e) _e.style.display='block';}
+      {var _e=document.getElementById('tc-running-name'); if(_e) _e.textContent=S['p'+p].name + ' joue !';}
+      updTcTimer();
+      tcTmrLocal = setInterval(function() {
+        tcSecs--; updTcTimer();
+        sndTick();
+        if (tcSecs <= 0) { clearInterval(tcTmrLocal); tcTmrLocal=null; endTcTurn(); }
+      }, 1000);
+    };
+    window._stopTC = function() {
+      if (tcTmrLocal) { clearInterval(tcTmrLocal); tcTmrLocal=null; }
+      endTcTurn();
+    };
+    window._valTC = function(count) {
+      tcScores[tcTurn] = count;
+      addPts(tcTurn, Math.min(count, 10)); sndOK();
+      {var _e=document.getElementById('tc-validate'); if(_e) _e.style.display='none';}
+      // Switch to other player or end
+      var other = tcTurn===1?2:1;
+      if (tcScores[1]===0 || tcScores[2]===0) {
+        // Other player hasn't gone yet
+        tcRunning = false;
+        {var _e=document.getElementById('tc-controls'); if(_e) _e.style.display='block';}
+        {var _e=document.getElementById('tc-running'); if(_e) _e.style.display='none';}
+        {var _e=document.getElementById('tc-msg'); if(_e) _e.textContent='Au tour de ' + S['p'+other].name + ' !';}
+        {var _e=document.getElementById('tc-p1-btn'); if(_e) _e.style.display=other===1?'block':'none';}
+        {var _e=document.getElementById('tc-p2-btn'); if(_e) _e.style.display=other===2?'block':'none';}
+      } else {
+        showNxt();
+      }
+    };
+    window._chgTC = function(d) {
+      var el = document.getElementById('tcnum');
+      if (!el) return;
+      var v = Math.max(0, parseInt(el.textContent||'0')+d);
+      el.textContent = v;
+    };
+  }, 50);
+  
+  function updTcTimer() {
+    var el = document.getElementById('tc-timer-val'); if(el) el.textContent=tcSecs;
+    var arc = document.getElementById('tc-arc');
+    if (arc) { var c=2*Math.PI*68; arc.style.strokeDashoffset=c*(1-tcSecs/30); arc.style.stroke=tcSecs>10?'#FF9F0A':tcSecs>5?'#FF6B35':'#FF3B30'; }
+  }
+  
+  function endTcTurn() {
+    tcRunning = false;
+    sndBad();
+    {var _e=document.getElementById('tc-running'); if(_e) _e.style.display='none';}
+    {var _e=document.getElementById('tc-validate'); if(_e) _e.style.display='block';}
+    {var _e=document.getElementById('tc-validate-title'); if(_e) _e.textContent=S['p'+(tcTurn===1?2:1)].name+', valide le score de '+S['p'+tcTurn].name+' :';}
+    {var _e=document.getElementById('tcnum'); if(_e) _e.textContent='0';}
+  }
+  
+  return '<div class="card" style="text-align:center"><div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#FF9F0A;margin-bottom:8px">⏱️ DÉFI — CHACUN SON TOUR</div><div style="font-size:18px;font-weight:800;margin-bottom:6px">'+ch.name+'</div><div style="font-size:13px;color:rgba(255,255,255,.5)">'+ch.desc+'</div></div>' +
+    '<div style="text-align:center;position:relative"><svg width="150" height="150" viewBox="0 0 150 150" style="transform:rotate(-90deg)"><circle cx="75" cy="75" r="68" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="8"/><circle id="tc-arc" cx="75" cy="75" r="68" fill="none" stroke="#FF9F0A" stroke-width="8" stroke-linecap="round" stroke-dasharray="'+(2*Math.PI*68)+'" stroke-dashoffset="0"/></svg><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:Syne,sans-serif"><div id="tc-timer-val" style="font-size:44px;font-weight:800">30</div><div style="font-size:10px;color:rgba(255,255,255,.35);letter-spacing:1px">SECONDES</div></div></div>' +
+    // CONTROLS — choose who plays
+    '<div id="tc-controls">' +
+      '<div id="tc-msg" style="font-size:13px;color:rgba(255,255,255,.4);text-align:center;margin-bottom:8px">Qui commence ?</div>' +
+      '<div class="bgrid">' +
+        '<button id="tc-p1-btn" class="bcard bc1" onclick="_startTC(1)" style="cursor:pointer"><div class="bname">'+S.p1.name+'</div><div class="blbl">▶ JOUE</div></button>' +
+        '<button id="tc-p2-btn" class="bcard bc2" onclick="_startTC(2)" style="cursor:pointer"><div class="bname">'+S.p2.name+'</div><div class="blbl">▶ JOUE</div></button>' +
+      '</div>' +
+    '</div>' +
+    // RUNNING
+    '<div id="tc-running" style="display:none;text-align:center">' +
+      '<div id="tc-running-name" style="font-size:18px;font-weight:800;color:#FFD60A;margin-bottom:10px"></div>' +
+      '<button class="btn btn-r w100" onclick="_stopTC()">STOP ! Compter les réponses</button>' +
+    '</div>' +
+    // VALIDATE — adversaire valide
+    '<div id="tc-validate" style="display:none;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:16px;text-align:center">' +
+      '<div id="tc-validate-title" style="font-size:13px;font-weight:700;color:rgba(255,255,255,.6);margin-bottom:12px"></div>' +
+      '<div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:12px">' +
+        '<button onclick="_chgTC(-1)" style="width:40px;height:40px;border-radius:50%;border:none;background:rgba(255,59,48,.15);color:#FF3B30;font-size:20px;cursor:pointer">−</button>' +
+        '<div id="tcnum" style="font-size:44px;font-weight:800;color:#FFD60A;min-width:60px">0</div>' +
+        '<button onclick="_chgTC(1)" style="width:40px;height:40px;border-radius:50%;border:none;background:rgba(52,199,89,.15);color:#34C759;font-size:20px;cursor:pointer">+</button>' +
+      '</div>' +
+      '<button class="btn btn-p w100" onclick="_valTC(parseInt(document.getElementById(\"tcnum\").textContent))">✓ Valider ce score</button>' +
+    '</div>' +
+    '<div id="tc-scores" style="display:flex;gap:8px;margin-top:4px">' +
+      '<div style="flex:1;background:'+S.p1.color+'22;border:1px solid '+S.p1.color+'44;border-radius:12px;padding:10px;text-align:center"><div style="font-size:11px;color:'+S.p1.color+'">'+S.p1.name+'</div><div id="tc-s1" style="font-size:22px;font-weight:800;color:#FFD60A">'+S.s1+'</div></div>' +
+      '<div style="flex:1;background:'+S.p2.color+'22;border:1px solid '+S.p2.color+'44;border-radius:12px;padding:10px;text-align:center"><div style="font-size:11px;color:'+S.p2.color+'">'+S.p2.name+'</div><div id="tc-s2" style="font-size:22px;font-weight:800;color:#FFD60A">'+S.s2+'</div></div>' +
+    '</div>' +
+    '<button class="nxtbtn" id="nxtbtn" onclick="S.tcI++;renderGame(\'timer-challenge\')">Défi suivant →</button>' +
+    '<button class="endbtn" onclick="endGame()">Terminer ✓</button>';
+}
+
+function rDLM() {
+  var dlmWords = DLM_ALL.slice().sort(function(){ return Math.random()-.5; });
+  var dlmIdx = 0, dlmScore = 0, _dlmRunning = false;
+  var TOTAL_DLM = 10 * 60; // 10 minutes
+  var dlmSecs = TOTAL_DLM;
+  _dlmTmr = null;
+  
+  S.passeFn = null; // DLM no pass — play until time runs out
+  
+  function getDlmWord() { return dlmWords[dlmIdx % dlmWords.length]; }
+  
+  function startDlmTimer() {
+    _dlmTmr = setInterval(function() {
+      dlmSecs--;
+      // Update display
+      var m = Math.floor(dlmSecs/60), s = dlmSecs%60;
+      var disp = document.getElementById('dlm-timer');
+      if (disp) { disp.textContent = m+':'+(s<10?'0':'')+s; disp.style.color = dlmSecs>60?'#fff':dlmSecs>30?'#FF9F0A':'#FF3B30'; }
+      var arc = document.getElementById('dlm-arc');
+      if (arc) { arc.style.strokeDashoffset = 125.6*(1-dlmSecs/TOTAL_DLM); arc.style.stroke = dlmSecs>60?'#34C759':dlmSecs>30?'#FF9F0A':'#FF3B30'; }
+      if (dlmSecs <= 0) { if(_dlmTmr){clearInterval(_dlmTmr);_dlmTmr=null;} endDlmGame(); }
+    }, 1000);
+  }
+  
+  function showDlmWord() {
+    var w = getDlmWord();
+    var el = document.getElementById('dlmw'); if(el) { el.textContent=w; el.classList.add('dlmblur'); }
+    var rb = document.getElementById('dlmrevbtn'); if(rb) rb.style.display='block';
+    var rz = document.getElementById('dlmresrow'); if(rz) rz.style.display='none';
+    var fb = document.getElementById('dlmfb'); if(fb) fb.textContent='';
+  }
+  
+  function endDlmGame() {
+    _dlmRunning = false;
+    var sc = document.getElementById('dlmw'); if(sc) sc.textContent='Temps écoulé !';
+    var pts = Math.min(dlmScore * 2, 20);
+    addPts(1,pts); addPts(2,pts); sndWin();
+    var fb = document.getElementById('dlmfb');
+    if(fb) fb.innerHTML = '<strong>🎉 '+dlmScore+' mots trouvés !</strong> +'+pts+' points chacun.';
+    var rb = document.getElementById('dlmrevbtn'); if(rb) rb.style.display='none';
+    var rz = document.getElementById('dlmresrow'); if(rz) rz.style.display='none';
+    var nb = document.getElementById('nxtbtn'); if(nb) nb.classList.add('show');
+  }
+  
+  setTimeout(function(){
+    _dlmRunning = true;
+    startDlmTimer();
+    // Expose functions globally
+    window._dlmFound = function() {
+      dlmScore++;
+      var sc = document.getElementById('dlmscore'); if(sc) sc.textContent=dlmScore;
+      sndOK();
+      dlmIdx++;
+      showDlmWord();
+    };
+    window._dlmPass = function() {
+      dlmIdx++;
+      showDlmWord();
+    };
+    window._dlmReveal = function() {
+      var el = document.getElementById('dlmw'); if(el) el.classList.remove('dlmblur');
+      var rb = document.getElementById('dlmrevbtn'); if(rb) rb.style.display='none';
+      var rz = document.getElementById('dlmresrow'); if(rz) rz.style.display='flex';
+    };
+  }, 50);
+  
+  return '<div style="background:rgba(52,199,89,.06);border:1px solid rgba(52,199,89,.15);border-radius:14px;padding:12px;text-align:center;font-size:13px;color:rgba(255,255,255,.7)"><strong>10 minutes — faites deviner le maximum de mots !</strong><br>Sans dire le mot, sans mimer sa forme.</div>' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:12px 16px">' +
+      '<div style="display:flex;align-items:center;gap:8px"><svg style="transform:rotate(-90deg)" width="48" height="48" viewBox="0 0 48 48"><circle fill="none" stroke="rgba(255,255,255,.08)" stroke-width="5" cx="24" cy="24" r="20"/><circle id="dlm-arc" fill="none" stroke="#34C759" stroke-width="5" stroke-linecap="round" cx="24" cy="24" r="20" stroke-dasharray="125.6" stroke-dashoffset="0"/></svg><div><div id="dlm-timer" style="font-size:22px;font-weight:800">10:00</div><div style="font-size:10px;color:rgba(255,255,255,.35);letter-spacing:1px">RESTANT</div></div></div>' +
+      '<div style="text-align:center"><div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.35);margin-bottom:4px">SCORE</div><div id="dlmscore" style="font-size:42px;font-weight:800;color:#FFD60A">0</div><div style="font-size:10px;color:rgba(255,255,255,.35)">mots trouvés</div></div>' +
+    '</div>' +
+    '<div class="osc2col" style="margin-top:0"><div style="background:rgba(0,122,255,.08);border:1.5px solid rgba(0,122,255,.3);border-radius:14px;padding:14px;text-align:center"><div style="font-size:9px;font-weight:700;letter-spacing:2px;color:rgba(0,122,255,.8);margin-bottom:6px">🗣️ EXPLIQUE</div><div style="font-size:15px;font-weight:700">'+S.p1.name+'</div></div><div style="background:rgba(255,45,85,.08);border:1.5px solid rgba(255,45,85,.3);border-radius:14px;padding:14px;text-align:center"><div style="font-size:9px;font-weight:700;letter-spacing:2px;color:rgba(255,45,85,.8);margin-bottom:6px">🎯 DEVINE</div><div style="font-size:15px;font-weight:700">'+S.p2.name+'</div></div></div>' +
+    '<div class="dlmw dlmblur" id="dlmw">'+dlmWords[0]+'</div>' +
+    '<button id="dlmrevbtn" onclick="_dlmReveal()" class="btn btn-s btn-sm">👁 Révéler le mot</button>' +
+    '<div id="dlmfb" style="font-size:13px;font-weight:700;min-height:20px;text-align:center"></div>' +
+    '<div id="dlmresrow" class="ptrow" style="display:none">' +
+      '<button class="btn btn-sm" style="background:rgba(52,199,89,.15);color:#34C759;border:1px solid rgba(52,199,89,.3)" onclick="_dlmFound()">✓ Trouvé ! Mot suivant</button>' +
+      '<button class="btn btn-sm" style="background:rgba(255,59,48,.1);color:#FF3B30;border:1px solid rgba(255,59,48,.2)" onclick="_dlmPass()">⏭ Passer ce mot</button>' +
+    '</div>' +
+    '<button class="nxtbtn" id="nxtbtn" onclick="if(_dlmTmr){clearInterval(_dlmTmr);}renderGame(\'devinez-mot\')">Nouvelle partie →</button>' +
+    '<button class="endbtn" onclick="if(_dlmTmr){clearInterval(_dlmTmr);}endGame()">Terminer ✓</button>';
+}
+
+function rBac() {
+  stopTmr();
+  S.bacLet = BAC_LETS[Math.floor(Math.random()*BAC_LETS.length)];
+  S.bacSecs = 90;
+  var bl = S.bacLet;
+  S.passeFn = function() {
+    stopBac();
+  };
+  setTimeout(function() {
+    S.bacTmr = setInterval(function() {
+      S.bacSecs--;
+      var v = document.getElementById('bacval'), a = document.getElementById('bacarc');
+      if (v) v.textContent = fmtT(S.bacSecs);
+      if (a) { var c=2*Math.PI*40; a.style.strokeDashoffset=c*(1-S.bacSecs/90); a.style.stroke=S.bacSecs>30?'#FFD60A':S.bacSecs>15?'#FF9F0A':'#FF3B30'; }
+      sndTick();
+      if (S.bacSecs <= 0) { clearInterval(S.bacTmr); S.bacTmr=null; stopBac(); }
+    }, 1000);
+  }, 100);
+  return '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.5)">Manche '+(S.bacManche+1)+' sur 7</div><div style="font-size:11px;color:rgba(255,255,255,.35)">'+S.bacManche+' manches jouées</div></div>' + '<div style="text-align:center"><div class="bacletter">'+bl+'</div><div style="font-size:9px;color:rgba(255,255,255,.3);letter-spacing:2px;margin-top:-4px">LETTRE DE LA MANCHE</div></div>' +
+    '<div style="text-align:center;margin-bottom:4px;position:relative"><svg width="90" height="90" viewBox="0 0 90 90" style="transform:rotate(-90deg)"><circle cx="45" cy="45" r="40" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="6"/><circle id="bacarc" cx="45" cy="45" r="40" fill="none" stroke="#FFD60A" stroke-width="6" stroke-linecap="round" stroke-dasharray="'+(2*Math.PI*40)+'" stroke-dashoffset="0"/></svg><div style="font-family:Syne,sans-serif;font-size:22px;font-weight:800;color:#FFD60A;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)" id="bacval">1:30</div></div>' +
+    '<div class="bacfields">'+BAC_CATS.map(function(c){ return '<div class="bacfw"><label>'+c+'</label><input placeholder="'+bl+'..." id="bac_'+c+'"></div>'; }).join('')+'</div>' +
+    '<div style="display:flex;gap:8px;margin-top:4px"><button class="btn btn-r w100" id="bacstop" onclick="stopBac()">STOP ! 🛑</button><button class="btn-xs" id="gt-pass" onclick="doPasse()">⏭ Passer (-2)</button></div>' +
+    '<div id="bacscore" style="display:none;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:14px;text-align:center"><div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.35);margin-bottom:10px">ATTRIBUER LES POINTS</div><div class="ptrow"><button class="btn btn-sm" style="background:'+S.p1.color+'22;color:'+S.p1.color+';border:1px solid '+S.p1.color+'44" onclick="addPts(1,3);nextBacManche()">+3 '+S.p1.name+' 🥇</button><button class="btn btn-sm" style="background:'+S.p2.color+'22;color:'+S.p2.color+';border:1px solid '+S.p2.color+'44" onclick="addPts(2,3);nextBacManche()">+3 '+S.p2.name+' 🥇</button><button class="btn btn-sm" style="background:rgba(255,214,10,.12);color:#FFD60A;border:1px solid rgba(255,214,10,.3)" onclick="addPts(1,1);addPts(2,1);nextBacManche()">+1 chacun 🤝</button><button class="btn btn-sm" style="background:rgba(255,59,48,.1);color:#FF3B30;border:1px solid rgba(255,59,48,.2)" onclick="penalize();nextBacManche()">-2 les deux</button></div></div>' +
+    '<button class="endbtn" onclick="endGame()">Terminer ✓</button>';
+}
+
+function nextBacManche() {
+  S.bacManche++;
+  if (S.bacManche >= 7) {
+    endGame();
+  } else {
+    renderGame('baccalaureat');
+  }
+}
+function stopBac() {
+  if (S.bacTmr) { clearInterval(S.bacTmr); S.bacTmr=null; }
+  var b = document.getElementById('bacstop'); if (b) b.style.display='none';
+  var z = document.getElementById('bacscore'); if (z) z.style.display='block';
+  document.querySelectorAll('.bacfw input').forEach(function(inp){ inp.disabled=true; });
+  sndBad();
+}
+
+function rOSC() {
+  var p = OSC_ALL[S.oscI % OSC_ALL.length];
+  S.passeFn = function() {
+    var _fb=document.getElementById('oscfb'); if(_fb) _fb.innerHTML='⏭️ <strong>Passé ! -2pts</strong>';
+    showNxt();
+  };
+  setTimeout(function() {
+    startTmr(TOTAL_SECS, function() {
+      penalize();
+      var _fb=document.getElementById('oscfb'); if(_fb) _fb.innerHTML='⏰ <strong>Temps ! -2pts</strong> Révélez quand même !';
+      var _rb=document.getElementById('oscrevbtn'); if(_rb) _rb.style.display='block';
+      var _pp=document.getElementById('gt-pass'); if(_pp) _pp.disabled=true;
+    });
+  }, 100);
+  return '<div style="background:rgba(191,90,242,.07);border:1px solid rgba(191,90,242,.2);border-radius:16px;padding:16px;text-align:center"><div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(191,90,242,.7);margin-bottom:8px">✍️ COMPLÉTEZ CETTE PHRASE</div><div style="font-size:18px;font-weight:800;color:#BF5AF2">'+p+'</div></div>' +
+    timerHTML() +
+    '<div class="osc2col"><div class="oscbox"><div class="osclbl">'+S.p1.name.toUpperCase()+'</div><textarea class="txtarea" id="osc1" placeholder="Ta suite..."></textarea></div><div class="oscbox"><div class="osclbl">'+S.p2.name.toUpperCase()+'</div><textarea class="txtarea" id="osc2" placeholder="Sa suite..."></textarea></div></div>' +
+    '<button class="btn btn-p w100" id="oscrevbtn" onclick="oscReveal()">Révéler et comparer !</button>' +
+    '<div id="oscrevzone" style="display:none">' +
+      '<div class="osc2col"><div style="background:rgba(0,122,255,.08);border:1px solid rgba(0,122,255,.2);border-radius:12px;padding:12px;text-align:center"><div style="font-size:9px;font-weight:700;letter-spacing:2px;color:rgba(0,122,255,.8);margin-bottom:5px">'+S.p1.name.toUpperCase()+'</div><div style="font-size:13px;font-weight:700" id="oscrev1"></div></div><div style="background:rgba(255,45,85,.08);border:1px solid rgba(255,45,85,.2);border-radius:12px;padding:12px;text-align:center"><div style="font-size:9px;font-weight:700;letter-spacing:2px;color:rgba(255,45,85,.8);margin-bottom:5px">'+S.p2.name.toUpperCase()+'</div><div style="font-size:13px;font-weight:700" id="oscrev2"></div></div></div>' +
+      '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:12px;text-align:center;margin-top:8px"><div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.35);margin-bottom:8px">VOS RÉPONSES SE RESSEMBLENT ?</div>' +
+      '<div class="ptrow"><button class="btn btn-sm" style="background:rgba(52,199,89,.15);color:#34C759;border:1px solid rgba(52,199,89,.3)" onclick="addPts(1,3);addPts(2,3);sndOK();showNxt();this.closest(\'.ptrow\').style.display=\'none\'">Très similaires ! +3</button><button class="btn btn-sm" style="background:rgba(0,122,255,.15);color:#007AFF;border:1px solid rgba(0,122,255,.3)" onclick="addPts(1,1);addPts(2,1);sndOK();showNxt();this.closest(\'.ptrow\').style.display=\'none\'">Un peu +1</button><button class="btn btn-s btn-sm" onclick="showNxt();this.closest(\'.ptrow\').style.display=\'none\'">Trop diff.</button></div></div>' +
+    '</div>' +
+    '<div id="oscfb" style="font-size:13px;font-weight:700;min-height:16px;text-align:center"></div>' +
+    '<button class="nxtbtn" id="nxtbtn" onclick="S.oscI++;renderGame(\'on-se-complete\')">Phrase suivante →</button>' +
+    '<button class="endbtn" onclick="endGame()">Terminer ✓</button>';
+}
+function oscReveal() {
+  stopTmr();
+  var a1 = document.getElementById('osc1').value.trim() || '(sans réponse)';
+  var a2 = document.getElementById('osc2').value.trim() || '(sans réponse)';
+  var _or1=document.getElementById('oscrev1'); if(_or1) _or1.textContent=a1;
+  var _or2=document.getElementById('oscrev2'); if(_or2) _or2.textContent=a2;
+  var _o1=document.getElementById('osc1'); if(_o1) _o1.disabled=true;
+  var _o2=document.getElementById('osc2'); if(_o2) _o2.disabled=true;
+  var _orb=document.getElementById('oscrevbtn'); if(_orb) _orb.style.display='none';
+  var _orz=document.getElementById('oscrevzone'); if(_orz) _orz.style.display='block';
+  var _gp=document.getElementById('gt-pass'); if(_gp) _gp.disabled=true;
+}
+
+function rVOD() {
+  var it = VOD_ALL[S.vodI % VOD_ALL.length];
+  S.curVodPlayer = 1;
+  S.passeFn = function() {
+    var _fb=document.getElementById('vodfb'); if(_fb) _fb.innerHTML='⏭️ <strong>Passé ! -2pts</strong>';
+    showNxt();
+  };
+  setTimeout(function() {
+    startTmr(TOTAL_SECS, function() {
+      penalize();
+      var _fb=document.getElementById('vodfb'); if(_fb) _fb.innerHTML='⏰ <strong>Temps ! -2pts</strong>';
+      showNxt();
+    });
+  }, 100);
+  return '<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.35)">POUR QUI ?</div>' +
+    '<div class="bgrid">' +
+      '<button class="btn btn-sm" style="background:'+S.p1.color+'22;color:'+S.p1.color+';border:2px solid '+S.p1.color+'" id="vodp1" onclick="S.curVodPlayer=1;document.getElementById(\'vodp1\').style.opacity=\'1\';document.getElementById(\'vodp2\').style.opacity=\'.4\'">👤 '+S.p1.name+'</button>' +
+      '<button class="btn btn-sm" style="background:'+S.p2.color+'22;color:'+S.p2.color+';border:2px solid '+S.p2.color+';opacity:.4" id="vodp2" onclick="S.curVodPlayer=2;document.getElementById(\'vodp2\').style.opacity=\'1\';document.getElementById(\'vodp1\').style.opacity=\'.4\'">👤 '+S.p2.name+'</button>' +
+    '</div>' +
+    timerHTML() +
+    '<div class="vodcard '+(it.t==='verite'?'vver':'vdef')+'"><div class="vodtype">'+(it.t==='verite'?'💬 VÉRITÉ':'🎯 DÉFI')+'</div><div class="vodtxt">'+it.txt+'</div></div>' +
+    '<div class="ptrow">' +
+      '<button class="btn btn-sm" style="background:rgba(52,199,89,.15);color:#34C759;border:1px solid rgba(52,199,89,.3)" onclick="stopTmr();addPts(S.curVodPlayer,2);sndOK();document.getElementById(\'vodfb\').innerHTML=\'✅ +2 points !\';document.getElementById(\'gt-pass\').disabled=true;showNxt()">✓ Réalisé ! +2</button>' +
+      '<button class="btn btn-sm" style="background:rgba(255,59,48,.1);color:#FF3B30;border:1px solid rgba(255,59,48,.2)" onclick="stopTmr();S[\'s\'+S.curVodPlayer]=Math.max(0,S[\'s\'+S.curVodPlayer]-1);updTB();document.getElementById(\'vodfb\').innerHTML=\'❌ Refusé -1pt\';document.getElementById(\'gt-pass\').disabled=true;showNxt()">✗ Refusé -1</button>' +
+    '</div>' +
+    '<div id="vodfb" style="font-size:13px;font-weight:700;min-height:16px;text-align:center"></div>' +
+    '<button class="nxtbtn" id="nxtbtn" onclick="S.vodI++;renderGame(\'verite-defi\')">Carte suivante →</button>' +
+    '<button class="endbtn" onclick="endGame()">Terminer ✓</button>';
+}
+
+function rLogic() {
+  var q = LOGIC_ALL[S.logI % LOGIC_ALL.length];
+  var dc = {facile:'#34C759',moyen:'#FF9F0A',difficile:'#FF3B30'}[q.diff];
+  S.passeFn = function() {
+    var _opts=document.querySelectorAll('.opt'); _opts.forEach(function(b){b.classList.add('disabled');});
+    if(_opts[q.cor]) _opts[q.cor].classList.add('correct');
+    var fb=document.getElementById('logfb'); if(fb){fb.className='fbbox fbto show'; fb.innerHTML='⏭️ <strong>Passé ! -2pts</strong> — Réponse : <strong>'+q.opts[q.cor]+'</strong>';}
+    showNxt();
+  };
+  setTimeout(function() {
+    startTmr(TOTAL_SECS, function() {
+      penalize();
+      var _opts=document.querySelectorAll('.opt'); _opts.forEach(function(b){b.classList.add('disabled');});
+      if(_opts[q.cor]) _opts[q.cor].classList.add('correct');
+      var fb=document.getElementById('logfb'); if(fb){fb.className='fbbox fbto show'; fb.innerHTML='⏰ <strong>Temps ! -2pts</strong>';}
+      showNxt();
+    });
+  }, 100);
+  return '<div style="display:flex;align-items:center;gap:8px"><div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.35)">QUESTION '+(S.logI+1)+'</div><div style="font-size:9px;font-weight:700;letter-spacing:1.5px;padding:3px 10px;border-radius:50px;background:'+dc+'22;color:'+dc+'">'+(q.diff==='facile'?'⭐ +2':q.diff==='moyen'?'⭐⭐ +3':'⭐⭐⭐ +4')+'</div></div>' +
+    timerHTML() +
+    '<div class="qbox"><div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(88,86,214,.8);margin-bottom:8px">🧠 ÉNIGME LOGIQUE — ÉQUIPE</div><div style="font-size:15px;font-weight:700;line-height:1.6">'+q.q+'</div></div>' +
+    '<div class="ogrid">'+q.opts.map(function(o,i){ return '<button class="opt" onclick="logPick('+i+')"><div class="optl">'+String.fromCharCode(65+i)+'</div>'+o+'</button>'; }).join('')+'</div>' +
+    '<div class="fbbox" id="logfb"></div>' +
+    '<button class="nxtbtn" id="nxtbtn" onclick="S.logI++;renderGame(\'logique-coop\')">Énigme suivante →</button>' +
+    '<button class="endbtn" onclick="endGame()">Terminer ✓</button>';
+}
+function logPick(idx) {
+  var q = LOGIC_ALL[S.logI % LOGIC_ALL.length];
+  stopTmr();
+  document.querySelectorAll('.opt').forEach(function(b,i) {
+    b.disabled = true;
+    if (i===idx) b.classList.add(idx===q.cor?'correct':'wrong');
+    else if (i===q.cor && idx!==q.cor) b.classList.add('correct');
+    else b.classList.add('disabled');
+  });
+  var fb = document.getElementById('logfb');
+  if (idx === q.cor) {
+    if(fb) { fb.className = 'fbbox fbok show'; fb.innerHTML = '✅ <strong>Correct !</strong> '+q.exp+' <strong style="color:#34C759">+'+q.pts+' pts chacun !</strong>';
+    addPts(1,q.pts); addPts(2,q.pts); sndOK(); }
+  } else {
+    if(fb) { fb.className = 'fbbox fbko show'; fb.innerHTML = '❌ '+q.exp; } penalize(); sndBad();
+  }
+  var _gp=document.getElementById('gt-pass'); if(_gp) _gp.disabled=true; showNxt();
+}
+
+function rTMK() {
+  var q = TMK_ALL[S.tmkI % TMK_ALL.length];
+  S.passeFn = function() {
+    var _fb=document.getElementById('tmkfb'); if(_fb) _fb.innerHTML='⏭️ <strong>Passé ! -2pts</strong>';
+    showNxt();
+  };
+  setTimeout(function() {
+    startTmr(TOTAL_SECS, function() {
+      penalize();
+      var _fb=document.getElementById('tmkfb'); if(_fb) _fb.innerHTML='⏰ <strong>Temps ! -2pts</strong> Révélez quand même !';
+      var _tb=document.getElementById('tmkrevbtn'); if(_tb) _tb.style.display='block';
+    });
+  }, 100);
+  return '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.35)">LA QUESTION PORTE SUR :</div>' +
+    '<button class="btn-xs" style="background:'+S.p1.color+'22;color:'+S.p1.color+';border-color:'+S.p1.color+'66;opacity:1" id="tmkp1" onclick="document.getElementById(\'tmkp1\').style.opacity=\'1\';document.getElementById(\'tmkp2\').style.opacity=\'.4\'">'+S.p1.name+'</button>' +
+    '<button class="btn-xs" style="opacity:.4" id="tmkp2" onclick="document.getElementById(\'tmkp2\').style.opacity=\'1\';document.getElementById(\'tmkp1\').style.opacity=\'.4\'">'+S.p2.name+'</button></div>' +
+    timerHTML() +
+    '<div style="background:rgba(255,214,10,.06);border:1px solid rgba(255,214,10,.18);border-radius:16px;padding:18px;text-align:center"><div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,214,10,.7);margin-bottom:8px">❓ TU ME CONNAIS ?</div><div style="font-size:16px;font-weight:700;line-height:1.5">'+q+'</div></div>' +
+    '<div class="osc2col"><div class="oscbox"><div class="osclbl">'+S.p1.name.toUpperCase()+'</div><textarea class="txtarea" id="tmk1" placeholder="Ta réponse..."></textarea></div><div class="oscbox"><div class="osclbl">'+S.p2.name.toUpperCase()+'</div><textarea class="txtarea" id="tmk2" placeholder="Sa réponse..."></textarea></div></div>' +
+    '<button class="btn btn-gold w100" id="tmkrevbtn" onclick="tmkReveal()">Révéler les réponses !</button>' +
+    '<div id="tmkrevzone" style="display:none">' +
+      '<div class="osc2col"><div style="background:rgba(0,122,255,.08);border:1px solid rgba(0,122,255,.2);border-radius:12px;padding:12px;text-align:center"><div style="font-size:9px;font-weight:700;letter-spacing:2px;color:rgba(0,122,255,.8);margin-bottom:5px">'+S.p1.name.toUpperCase()+'</div><div id="tmkrev1" style="font-size:13px;font-weight:700"></div></div><div style="background:rgba(255,45,85,.08);border:1px solid rgba(255,45,85,.2);border-radius:12px;padding:12px;text-align:center"><div style="font-size:9px;font-weight:700;letter-spacing:2px;color:rgba(255,45,85,.8);margin-bottom:5px">'+S.p2.name.toUpperCase()+'</div><div id="tmkrev2" style="font-size:13px;font-weight:700"></div></div></div>' +
+      '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:12px;text-align:center;margin-top:8px"><div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.35);margin-bottom:8px">QUI AVAIT LA BONNE RÉPONSE ?</div>' +
+      '<div class="ptrow"><button class="btn btn-sm" style="background:'+S.p1.color+'22;color:'+S.p1.color+';border:1px solid '+S.p1.color+'44" onclick="addPts(1,2);sndOK();showNxt();this.closest(\'.ptrow\').style.display=\'none\'">✓ '+S.p1.name+' +2</button><button class="btn btn-sm" style="background:'+S.p2.color+'22;color:'+S.p2.color+';border:1px solid '+S.p2.color+'44" onclick="addPts(2,2);sndOK();showNxt();this.closest(\'.ptrow\').style.display=\'none\'">✓ '+S.p2.name+' +2</button><button class="btn btn-sm btn-gold" onclick="addPts(1,1);addPts(2,1);sndOK();showNxt();this.closest(\'.ptrow\').style.display=\'none\'">Les deux +1</button></div></div>' +
+    '</div>' +
+    '<div id="tmkfb" style="font-size:13px;font-weight:700;min-height:16px;text-align:center"></div>' +
+    '<button class="nxtbtn" id="nxtbtn" onclick="S.tmkI++;renderGame(\'tu-me-connais\')">Question suivante →</button>' +
+    '<button class="endbtn" onclick="endGame()">Terminer ✓</button>';
+}
+function tmkReveal() {
+  stopTmr();
+  var a1=document.getElementById('tmk1').value.trim()||'(sans réponse)';
+  var a2=document.getElementById('tmk2').value.trim()||'(sans réponse)';
+  var _tr1=document.getElementById('tmkrev1'); if(_tr1) _tr1.textContent=a1;
+  var _tr2=document.getElementById('tmkrev2'); if(_tr2) _tr2.textContent=a2;
+  var _t1=document.getElementById('tmk1'); if(_t1) _t1.disabled=true;
+  var _t2=document.getElementById('tmk2'); if(_t2) _t2.disabled=true;
+  var _trb=document.getElementById('tmkrevbtn'); if(_trb) _trb.style.display='none';
+  var _trz=document.getElementById('tmkrevzone'); if(_trz) _trz.style.display='block';
+  var _gp=document.getElementById('gt-pass'); if(_gp) _gp.disabled=true;
+}
+
+// ══════════════════════════
+// RECAP & FIN
+// ══════════════════════════
+var gageList = GAGES.slice().sort(function(){ return Math.random()-.5; });
+function showRecap() {
+  stopTmr();
+  var s1=S.s1, s2=S.s2, winner=s1>s2?1:s2>s1?2:0;
+  {var _e=document.getElementById('rec-title'); if(_e) _e.textContent='Fin de la Manche '+S.manche+' !';}
+  function mkCard(p, sc, isW) {
+    var pl = S['p'+p];
+    var av = pl.avatar ? '<img src="'+pl.avatar+'" style="width:52px;height:52px;border-radius:50%;object-fit:cover;margin:0 auto 8px;display:block">' : '<div style="background:'+pl.color+'22;color:'+pl.color+';width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;margin:0 auto 8px">'+pl.name[0]+'</div>';
+    return '<div style="flex:1;text-align:center;background:rgba(255,255,255,.05);border:1px solid '+(isW?'rgba(255,214,10,.4)':'rgba(255,255,255,.09)')+';border-radius:18px;padding:16px">'+(isW?'<div style="font-size:18px;margin-bottom:3px">👑</div>':'')+av+'<div style="font-size:12px;color:rgba(255,255,255,.45);margin-bottom:4px">'+pl.name+'</div><div style="font-size:38px;font-weight:800;color:#FFD60A">'+sc+'</div></div>';
+  }
+  {var _e=document.getElementById('rec-scores'); if(_e) _e.innerHTML=mkCard(1,s1,s1>s2) + mkCard(2,s2,s2>s1);}
+  var dots=document.getElementById('rec-dots');
+  dots.innerHTML = [0,1,2].map(function(i){ return '<div style="flex:1;height:4px;border-radius:2px;background:'+(i<S.manche-1?'#FFD60A':i===S.manche-1?'#fff':'rgba(255,255,255,.12)')+'"></div>'; }).join('');
+  if (winner===0) {
+    {var _e=document.getElementById('rec-eq'); if(_e) _e.style.display='block';}
+    {var _e=document.getElementById('rec-gage'); if(_e) _e.style.display='none';}
+  } else {
+    {var _e=document.getElementById('rec-eq'); if(_e) _e.style.display='none';}
+    {var _e=document.getElementById('rec-gage'); if(_e) _e.style.display='block';}
+    var loser=winner===1?S.p2:S.p1;
+    {var _e=document.getElementById('rec-gage-who'); if(_e) _e.textContent='GAGE POUR '+loser.name.toUpperCase();}
+    {var _e=document.getElementById('rec-gage-txt'); if(_e) _e.textContent=gageList[S.gageI % gageList.length];}
+  }
+  var isLast=S.manche>=S.totalM;
+  var btn=document.getElementById('rec-nxt');
+  btn.textContent=isLast?'Voir le résultat final 🏆':'Manche suivante →';
+  btn.className='btn w100 '+(isLast?'btn-gold':'btn-p');
+  btn.style.maxWidth='400px';
+  btn.onclick=isLast?showFin:nextManche;
+  if (s1>s2) sndWin(); else if (s2>s1) sndBad(); else sndOK();
+  updTB(); showScreen('s-recap'); fbPushRecap();
+}
+function newGage() { S.gageI++; var _e=document.getElementById('rec-gage-txt'); if(_e) _e.textContent=gageList[S.gageI%gageList.length]; }
+function nextManche() {
+  S.manche++; S.gIdx=0; S.giftLeft=3;
+  updTB(); showScreen('s-wheel');
+  var _ws=document.getElementById('wspin'); if(_ws) _ws.style.display='block';
+  var _wn=document.getElementById('wnxt'); if(_wn) _wn.style.display='none';
+  var _wr=document.getElementById('wres'); if(_wr) _wr.textContent='';
+  var _wp=document.getElementById('wgprev'); if(_wp) _wp.style.display='none';
+  drawWheel();
+}
+
+var gageFinList = GAGES.slice().sort(function(){ return Math.random()-.5; });
+function showFin() {
+  var s1=S.s1,s2=S.s2,winner=s1>=s2?1:2;
+  var win=S['p'+winner], los=S['p'+(winner===1?2:1)];
+  var ws=S['s'+winner], ls=S['s'+(winner===1?2:1)];
+  {var _e=document.getElementById('fin-winner'); if(_e) _e.textContent=s1===s2 ? 'Égalité parfaite ! 🤝' : win.name+' gagne ! 🎉';}
+  {var _e=document.getElementById('fin-sub'); if(_e) _e.textContent=s1===s2 ? s1+' points chacun' : ws+' — '+ls+' points';}
+  function mkC(p,sc,isW) {
+    var pl=S['p'+p];
+    var av=pl.avatar?'<img src="'+pl.avatar+'" style="width:52px;height:52px;border-radius:50%;object-fit:cover;margin:0 auto 8px;display:block">':'<div style="background:'+pl.color+'22;color:'+pl.color+';width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;margin:0 auto 8px">'+pl.name[0]+'</div>';
+    return '<div style="flex:1;text-align:center;background:rgba(255,255,255,.05);border:1px solid '+(isW?'rgba(255,214,10,.4)':'rgba(255,255,255,.09)')+';border-radius:18px;padding:16px">'+(isW?'<div style="font-size:20px;margin-bottom:3px">👑</div>':'')+av+'<div style="font-size:12px;color:rgba(255,255,255,.45);margin-bottom:4px">'+pl.name+'</div><div style="font-size:38px;font-weight:800;color:#FFD60A">'+sc+'</div></div>';
+  }
+  {var _e=document.getElementById('fin-scores'); if(_e) _e.innerHTML=mkC(1,s1,s1>=s2) + mkC(2,s2,s2>=s1);}
+  if (s1 !== s2) {
+    {var _e=document.getElementById('fin-prize'); if(_e) _e.style.display='block';}
+    {var _e=document.getElementById('fin-prize-txt'); if(_e) _e.textContent=win.name+' peut demander ce qu\'il/elle veut à '+los.name+' 👑';}
+    {var _e=document.getElementById('fin-gage'); if(_e) _e.style.display='block';}
+    {var _e=document.getElementById('fin-gage-who'); if(_e) _e.textContent='GAGE FINAL POUR '+los.name.toUpperCase();}
+    {var _e=document.getElementById('fin-gage-txt'); if(_e) _e.textContent=gageFinList[S.gageFinI%gageFinList.length];}
+  }
+  {var _e=document.getElementById('fin-stats'); if(_e) _e.innerHTML =
+    '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:13px;padding:12px;text-align:center"><div style="font-size:24px;font-weight:800;color:#007AFF">'+S.manche+'</div><div style="font-size:9px;color:rgba(255,255,255,.3);margin-top:2px;letter-spacing:1px">MANCHES</div></div>' +
+    '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:13px;padding:12px;text-align:center"><div style="font-size:24px;font-weight:800;color:#007AFF">'+GORDER.length*S.totalM+'</div><div style="font-size:9px;color:rgba(255,255,255,.3);margin-top:2px;letter-spacing:1px">JEUX</div></div>' +
+    '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:13px;padding:12px;text-align:center"><div style="font-size:24px;font-weight:800;color:#007AFF">'+S.buzzCnt+'</div><div style="font-size:9px;color:rgba(255,255,255,.3);margin-top:2px;letter-spacing:1px">BUZZES</div></div>';}
+  sndWin(); showScreen('s-fin'); launchConfetti();
+}
+function newGageFin() { S.gageFinI++; var _e=document.getElementById('fin-gage-txt'); if(_e) _e.textContent=gageFinList[S.gageFinI%gageFinList.length]; }
+function restartGame() {
+  stopTmr();
+  S.s1=0;S.s2=0;S.manche=1;S.gIdx=0;S.giftLeft=3;S.buzzCnt=0;
+  S.quizI=0;S.tmkI=0;S.logI=0;S.oscI=0;S.dlmI=0;S.vodI=0;S.btI=0;
+  S.survScnIdx=0;S.survScIdx=0;S.survHp=100;
+  S.escScnIdx=0;S.escEnIdx=0;S.escHp=3;
+  S.tcI=0;S.bacManche=0;S.gageI=0;S.gageFinI=0;S.buzzed=false;
+  S.gOrder=GORDER.slice(); wCurGame=null;
+  gageList=GAGES.slice().sort(function(){return Math.random()-.5;});
+  gageFinList=GAGES.slice().sort(function(){return Math.random()-.5;});
+  var _ws=document.getElementById('wspin'); if(_ws) _ws.style.display='block';
+  var _wn=document.getElementById('wnxt'); if(_wn) _wn.style.display='none';
+  var _wr=document.getElementById('wres'); if(_wr) _wr.textContent='';
+  var _wp=document.getElementById('wgprev'); if(_wp) _wp.style.display='none';
+  updTB(); showScreen('s-wheel'); drawWheel();
+}
+function shareScore() {
+  var txt='🎮 Hadjikouvi Game — '+S.p1.name+' : '+S.s1+' pts | '+S.p2.name+' : '+S.s2+' pts !';
+  if (navigator.share) { navigator.share({title:'Hadjikouvi Game',text:txt}).catch(function(){}); }
+  else if (navigator.clipboard) { navigator.clipboard.writeText(txt).then(function(){alert('Score copié ! 📋');}).catch(function(){alert(txt);}); }
+  else { alert(txt); }
+}
+
+// ══════════════════════════
+// CONFETTI
+// ══════════════════════════
+function launchConfetti() {
+  var cv=document.getElementById('confcv');
+  cv.width=window.innerWidth; cv.height=window.innerHeight;
+  var ctx=cv.getContext('2d');
+  var cols=['#FFD60A','#007AFF','#FF2D55','#34C759','#5AC8FA','#FF9F0A','#BF5AF2'];
+  var ps=[];
+  for(var i=0;i<120;i++) ps.push({x:Math.random()*cv.width,y:Math.random()*-cv.height*.5,w:5+Math.random()*9,h:4+Math.random()*6,c:cols[Math.floor(Math.random()*cols.length)],vx:(Math.random()-.5)*3,vy:1.5+Math.random()*3,rot:Math.random()*360,vr:(Math.random()-.5)*5,op:1});
+  var el=0,fr;
+  function draw() {
+    ctx.clearRect(0,0,cv.width,cv.height); el++;
+    ps.forEach(function(p) {
+      p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;
+      if(el>180) p.op=Math.max(0,p.op-.008);
+      ctx.save();ctx.globalAlpha=p.op;ctx.translate(p.x,p.y);ctx.rotate(p.rot*Math.PI/180);ctx.fillStyle=p.c;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();
+      if(p.y>cv.height){p.y=-20;p.x=Math.random()*cv.width;p.op=1;}
+    });
+    if(el<300) fr=requestAnimationFrame(draw); else ctx.clearRect(0,0,cv.width,cv.height);
+  }
+  draw();
+}
+
+// ══════════════════════════
+// INIT
+// ══════════════════════════
+
+// ══════════════════════════
+// QR CODE
+// ══════════════════════════
+function showQR() {
+  var modal = document.getElementById('qr-modal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  if (!_sessionId) createSession();
+  var baseUrl = window.location.href.split('?')[0];
+  var url = baseUrl + '?session=' + _sessionId;
+  var isLocal = url.indexOf('file://') === 0 || url.indexOf('localhost') !== -1 || url.indexOf('127.0.0.1') !== -1;
+  var urlEl = document.getElementById('qr-url');
+  var noteEl = document.getElementById('qr-note');
+  var container = document.getElementById('qr-container');
+  if (urlEl) urlEl.textContent = url;
+  if (isLocal) {
+    if (container) container.innerHTML = '<div style="width:180px;height:180px;display:flex;align-items:center;justify-content:center;color:#333;font-size:12px;text-align:center;padding:12px;line-height:1.5">📂 Fichier local<br><br>QR non disponible<br>hors ligne.</div>';
+    if (noteEl) noteEl.style.display = 'block';
+    return;
+  }
+  if (noteEl) noteEl.style.display = 'none';
+  if (container) {
+    container.innerHTML = '';
+    var img = document.createElement('img');
+    img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(url);
+    img.width = 180; img.height = 180;
+    img.onerror = function() {
+      container.innerHTML = '<div style="width:180px;height:180px;display:flex;align-items:center;justify-content:center;color:#333;font-size:12px;text-align:center;padding:10px">QR indisponible.<br>Copiez l\'URL ci-dessous.</div>';
+    };
+    container.appendChild(img);
+  }
+}
+function closeQR() {
+  var modal = document.getElementById('qr-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+window.addEventListener('load', function() {
+  if (window.speechSynthesis) speechSynthesis.getVoices();
+  // Init Firebase
+  fbInit();
+  // Check if joining via QR (phone mode)
+  var sid = getSessionId();
+  if (sid) {
+    // PHONE MODE - don't draw the game UI
+    joinSession(sid);
+  } else {
+    // HOST MODE - normal game
+    drawWheel();
+    setTimeout(function() { createSession(); setTimeout(function(){ fbPushWheel(false, null, null); }, 500); }, 800);
+  }
+  var _qm = document.getElementById('qr-modal');
+  if (_qm) _qm.addEventListener('click', function(e) { if (e.target === _qm) closeQR(); });
+});
+window.addEventListener('resize', function() {
+  drawWheel();
+});
+</script>
+</body>
+</html>
